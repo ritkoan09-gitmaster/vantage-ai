@@ -729,36 +729,94 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Profile Card */}
-        <div className="mb-8 rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl">
-          <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon-cyan mb-4 border-b border-white/10 pb-2">Developer Identity</h3>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-cyan to-blue-600 text-2xl font-bold text-white shadow-[0_0_25px_rgba(0,240,255,0.4)]">
-              {userInitials}
+        {/* Profile Card - Cyberpunk Badge Format */}
+        <div className="mb-8 rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-10 -mt-10 h-32 w-32 rounded-full bg-neon-cyan/5 blur-2xl pointer-events-none" />
+          
+          <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-5">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_8px_#00f0ff]" />
+              <h3 className="text-[11px] font-mono font-bold uppercase tracking-widest text-neon-cyan">Developer Identity</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 flex-1 w-full">
-              <div><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Username</span><p className="font-bold text-white font-mono text-sm">@{profile.username}</p></div>
-              <div><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Email</span><p className="font-bold text-white font-mono text-sm truncate">{profile.email}</p></div>
-              <div><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Phone</span><p className="font-bold text-white font-mono text-sm">{profile.phone || 'Not configured'}</p></div>
-              
-              <div className="pt-2"><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Active Plan</span><p className="font-bold text-neon-cyan uppercase tracking-wide text-sm">{activeTier}</p></div>
-              <div className="pt-2"><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Activated</span><p className="font-bold text-emerald-400 font-mono text-sm">{subDates.activation}</p></div>
-              <div className="pt-2"><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Expires</span><p className="font-bold text-zinc-300 font-mono text-sm">{subDates.expiry}</p></div>
+            <span className="text-[10px] font-mono bg-white/5 border border-white/10 px-2 py-0.5 rounded text-zinc-400 uppercase">
+              ID: {profile.username ? profile.username.slice(0, 8).toUpperCase() : 'VAULT-01'}
+            </span>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            {/* Avatar with Glow */}
+            <div className="relative group shrink-0">
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-neon-cyan to-blue-600 opacity-60 blur-sm group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-2xl bg-[#07070A] border border-white/10 text-2xl sm:text-3xl font-black text-white font-mono shadow-2xl">
+                {userInitials}
+              </div>
+            </div>
+
+            {/* Structured Info Grid with clean cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Handle</span>
+                <p className="font-bold text-white font-mono text-sm truncate">@{profile.username || 'developer'}</p>
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Verified Email</span>
+                <p className="font-bold text-white font-mono text-sm truncate">{profile.email || 'N/A'}</p>
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Encrypted Phone</span>
+                <p className="font-bold text-white font-mono text-sm">{profile.phone || 'Not configured'}</p>
+              </div>
+
+              <div className="rounded-xl border border-neon-cyan/20 bg-neon-cyan/[0.03] p-3">
+                <span className="text-[10px] font-mono text-neon-cyan/70 uppercase tracking-widest font-semibold block mb-1">Active Plan</span>
+                <p className="font-black text-neon-cyan uppercase tracking-wide text-sm font-mono">{activeTier}</p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-3">
+                <span className="text-[10px] font-mono text-emerald-400/70 uppercase tracking-widest font-semibold block mb-1">Activation</span>
+                <p className="font-bold text-emerald-400 font-mono text-sm">{subDates.activation}</p>
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Valid Until</span>
+                <p className="font-bold text-zinc-300 font-mono text-sm">{subDates.expiry}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <h2 className="text-lg font-bold text-white mb-4">Subscription Tiers</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Subscription Tiers with Mobile Swipe Carousel */}
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white tracking-tight">Subscription Tiers</h2>
+          <span className="text-[11px] font-mono text-zinc-500 md:hidden flex items-center gap-1">
+            Swipe left/right →
+          </span>
+        </div>
+
+        {/* Mobile Swipe Carousel + Desktop Grid */}
+        <div className="flex md:grid md:grid-cols-3 gap-4 sm:gap-5 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
           {tiers.map((tier) => (
-            <div key={tier.name} className={`relative flex flex-col rounded-2xl border ${tier.highlight ? 'border-neon-cyan/50 bg-[#12121A]/95 shadow-[0_10px_40px_rgba(0,240,255,0.15)]' : 'border-white/10 bg-[#12121A]/60'} p-6 backdrop-blur-xl transition-all`}>
-              {tier.highlight && <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-neon-cyan to-blue-600 px-3 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-white shadow-md">Recommended</div>}
+            <div 
+              key={tier.name} 
+              className={`shrink-0 w-[84vw] sm:w-[320px] md:w-auto snap-center relative flex flex-col rounded-2xl border ${
+                tier.highlight 
+                  ? 'border-neon-cyan/50 bg-[#12121A]/95 shadow-[0_10px_40px_rgba(0,240,255,0.15)]' 
+                  : 'border-white/10 bg-[#12121A]/60'
+              } p-6 backdrop-blur-xl transition-all`}
+            >
+              {tier.highlight && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-neon-cyan to-blue-600 px-3 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-white shadow-md">
+                  Recommended
+                </div>
+              )}
               <h3 className="text-base font-bold text-white">{tier.name}</h3>
               <div className="mt-2 flex items-baseline gap-1">
                 <span className="text-3xl font-black text-white tracking-tight">{tier.price}</span>
                 <span className="text-xs font-mono text-zinc-400">{tier.period}</span>
               </div>
-              <p className="mt-2 text-xs text-zinc-400">{tier.desc}</p>
+              <p className="mt-2 text-xs text-zinc-400 min-h-[32px]">{tier.desc}</p>
               <div className="my-5 h-px w-full bg-white/10" />
               <ul className="mb-6 flex flex-col gap-2.5 flex-1">
                 {tier.features.map((f, i) => (

@@ -807,7 +807,7 @@ export default function Dashboard() {
               } p-6 backdrop-blur-xl transition-all`}
             >
               {tier.highlight && (
-                <div className="mb-4 inline-flex items-center gap-1.5 self-start rounded-full bg-gradient-to-r from-neon-cyan/20 to-blue-600/20 border border-neon-cyan/50 px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.25)]">
+                <div className="mb-4 inline-flex items-center gap-1.5 self-start rounded-full bg-gradient-to-r from-neon-cyan/25 to-blue-600/25 border border-neon-cyan/60 px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(0,240,255,0.3)]">
                   <Sparkles size={11} className="text-neon-cyan" />
                   Recommended
                 </div>

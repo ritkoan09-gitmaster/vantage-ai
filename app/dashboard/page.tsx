@@ -807,9 +807,13 @@ export default function Dashboard() {
               } p-6 backdrop-blur-xl transition-all`}
             >
               {tier.highlight && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 rounded-full bg-gradient-to-r from-neon-cyan to-blue-600 px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(0,240,255,0.5)] border border-white/20 whitespace-nowrap">
-                  RECOMMENDED
-                </div>
+                <>
+                  {/* Backdrop mask: masks the border line right under RECOMMENDED badge */}
+                  <div className="absolute -top-[3px] left-1/2 -translate-x-1/2 z-10 h-[5px] w-36 bg-[#000000]" />
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 rounded-full bg-gradient-to-r from-neon-cyan to-blue-600 px-4 py-1 text-[10px] font-mono font-black uppercase tracking-wider text-black shadow-[0_0_20px_rgba(0,240,255,0.6)] whitespace-nowrap">
+                    RECOMMENDED
+                  </div>
+                </>
               )}
               <h3 className="text-base font-bold text-white">{tier.name}</h3>
               <div className="mt-2 flex items-baseline gap-1">

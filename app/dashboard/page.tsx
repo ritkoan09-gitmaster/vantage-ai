@@ -849,10 +849,10 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen w-full bg-black overflow-hidden text-white selection:bg-neon-cyan/30">
+    <div className="flex h-[100dvh] w-full bg-black overflow-hidden text-white selection:bg-neon-cyan/30">
       <Sidebar open={sideOpen} onClose={() => setSideOpen(false)} activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative z-10">
+      <main className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-y-auto overscroll-contain relative z-10">
         {/* Responsive Dashboard Header */}
         <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-[#07070A]/90 px-4 sm:px-6 py-3 backdrop-blur-2xl">
           {/* Left: Mobile Menu + Search */}
@@ -960,7 +960,7 @@ export default function Dashboard() {
         </header>
 
         {/* Dashboard Content Container */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-28 sm:pb-16">
           <AnimatePresence mode="wait">
             {activeTab === 'snippets' && renderSnippetsView()}
             {activeTab === 'languages' && renderLanguagesView()}

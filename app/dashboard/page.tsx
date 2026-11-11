@@ -7,7 +7,12 @@ import { SnippetCard } from '@/components/snippet/SnippetCard';
 import { CommandPalette } from '@/components/ui/CommandPalette';
 import { SnippetFormModal } from '@/components/snippet/SnippetFormModal';
 import { SnippetEditModal } from '@/components/snippet/SnippetEditModal';
-import { Menu, Search, Plus, Code2, Flame, Clock, GitBranch, Share2, Terminal, LogOut, CheckCircle2, ShieldAlert, Sparkles, Activity, Cpu, LayoutGrid, Copy, CreditCard, ShieldCheck, X, BookOpen, Star, Bell, Trash2, Edit2, Zap, BrainCircuit, AlertTriangle, Eye, Server, Gift } from 'lucide-react';
+import { 
+  Menu, Search, Plus, Code2, Flame, Clock, GitBranch, Share2, Terminal, 
+  LogOut, CheckCircle2, ShieldAlert, Sparkles, Activity, Cpu, LayoutGrid, 
+  Copy, CreditCard, ShieldCheck, X, BookOpen, Star, Bell, Trash2, Edit2, 
+  Zap, BrainCircuit, AlertTriangle, Eye, Server, Gift, Filter, ArrowUpRight
+} from 'lucide-react';
 import { Snippet, SubscriptionTier } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -38,7 +43,6 @@ export default function Dashboard() {
   const [viewSnippetAnalyzing, setViewSnippetAnalyzing] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   
-  // 🔥 Dynamic Notifications State
   interface AppNotification { id: string; title: string; message: string; color: string; }
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -100,104 +104,138 @@ export default function Dashboard() {
       localStorage.setItem('vault_is_trial', 'true');
       localStorage.setItem('vault_activation_date', today.toISOString());
       localStorage.setItem('vault_expiry_date', nextMonth.toISOString());
-      localStorage.setItem('vault_seen_pricing', 'true');
       localStorage.removeItem('vault_pending_offer');
 
       setActiveTier('Pro Plan Monthly');
       setMonthlyEditsLeft(5);
-      setSubDates({ activation: formatDate(today.toISOString()), expiry: formatDate(nextMonth.toISOString()) });
+      setSubDates({
+        activation: formatDate(today.toISOString()),
+        expiry: formatDate(nextMonth.toISOString())
+      });
+
       setShowOfferPopup(false);
-
-    } catch (error) {
-      console.error("Network error claiming trial:", error);
-    }
-  };
-
-  const handleSelectTier = (selectedTier: SubscriptionTier) => {
-    if (selectedTier === 'Free Trial') {
-      setActiveTier(selectedTier);
-      localStorage.setItem('vault_tier', selectedTier);
-      localStorage.setItem('vault_seen_pricing', 'true');
-      setMonthlyEditsLeft(0); 
-      
-      const todayIso = new Date().toISOString();
-      localStorage.setItem('vault_activation_date', todayIso);
-      localStorage.setItem('vault_expiry_date', 'Lifetime');
-      setSubDates({ activation: formatDate(todayIso), expiry: 'Lifetime' });
-
-      setShowPricingPopup(false);
-    } else {
-      setCheckoutPlan(selectedTier);
-    }
-  };
-
-  const executePaymentPipeline = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPaymentError('');
-
-    if (cardNumber.replace(/\s/g, '').length < 16 || cardExpiry.length < 4 || cardCvc.length < 3) {
-      setPaymentError('Invalid billing parameters.');
-      return;
-    }
-
-    if (checkoutPlan) {
-      setPaymentSuccess(true);
-      setActiveTier(checkoutPlan);
-      localStorage.setItem('vault_tier', checkoutPlan);
-      localStorage.setItem('vault_seen_pricing', 'true');
-      
-      const currentExpiryIso = localStorage.getItem('vault_expiry_date');
-      let baseDate = new Date();
-      if (currentExpiryIso && currentExpiryIso !== 'Lifetime' && currentExpiryIso !== 'Expired') {
-         const currentExpiry = new Date(currentExpiryIso);
-         if (currentExpiry > baseDate) baseDate = currentExpiry;
-      }
-
-      let newExpiryIso = 'Lifetime';
-      if (checkoutPlan === 'Pro Plan Monthly') {
-        setMonthlyEditsLeft(5);
-        const nextMonth = new Date(baseDate);
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        newExpiryIso = nextMonth.toISOString();
-      } else if (checkoutPlan === 'Yearly Max Plan') {
-        setMonthlyEditsLeft(999);
-        const nextYear = new Date(baseDate);
-        nextYear.setFullYear(nextYear.getFullYear() + 1);
-        newExpiryIso = nextYear.toISOString();
-      }
-
-      const activationIso = new Date().toISOString();
-      localStorage.setItem('vault_activation_date', activationIso);
-      localStorage.setItem('vault_expiry_date', newExpiryIso);
-      setSubDates({ activation: formatDate(activationIso), expiry: formatDate(newExpiryIso) });
-
-      setTimeout(() => {
-        setPaymentSuccess(false);
-        setCheckoutPlan(null);
-        setShowPricingPopup(false);
-      }, 2500);
+    } catch (err) {
+      console.error("Failed to activate offer", err);
+      setShowOfferPopup(false);
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('vault_auth');
-    localStorage.removeItem('vault_seen_pricing');
+    localStorage.removeItem('vault_username');
+    localStorage.removeItem('vault_email');
+    localStorage.removeItem('vault_phone');
     localStorage.removeItem('vault_tier');
+    localStorage.removeItem('vault_is_trial');
+    localStorage.removeItem('vault_activation_date');
+    localStorage.removeItem('vault_expiry_date');
+    localStorage.removeItem('vault_seen_pricing');
+    localStorage.removeItem('vault_pending_offer');
     router.push('/login');
   };
 
+  const handleSelectTier = (tierName: SubscriptionTier) => {
+    setShowPricingPopup(false);
+    localStorage.setItem('vault_seen_pricing', 'true');
+
+    if (tierName === 'Free Trial') {
+      const today = new Date().toISOString();
+      setActiveTier('Free Trial');
+      setMonthlyEditsLeft(0);
+      setSubDates({ activation: formatDate(today), expiry: 'Lifetime' });
+      localStorage.setItem('vault_tier', 'Free Trial');
+      localStorage.setItem('vault_activation_date', today);
+      localStorage.setItem('vault_expiry_date', 'Lifetime');
+      
+      const username = localStorage.getItem('vault_username');
+      if (username) {
+        fetch('/api/subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username,
+            tier: 'Free Trial',
+            activationDate: today,
+            expiryDate: 'Lifetime'
+          }),
+        }).catch(e => console.error(e));
+      }
+      return;
+    }
+
+    setCheckoutPlan(tierName);
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvc('');
+    setPaymentError('');
+    setPaymentSuccess(false);
+  };
+
+  const executePaymentPipeline = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cardNumber || !cardExpiry || !cardCvc) {
+      setPaymentError('All encrypted payment fields are mandatory.');
+      return;
+    }
+
+    setPaymentError('');
+    setPaymentSuccess(true);
+
+    setTimeout(() => {
+      if (checkoutPlan) {
+        const today = new Date();
+        const expiryDate = new Date(today);
+        if (checkoutPlan === 'Pro Plan Monthly') expiryDate.setMonth(expiryDate.getMonth() + 1);
+        if (checkoutPlan === 'Yearly Max Plan') expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+
+        const username = localStorage.getItem('vault_username');
+        if (username) {
+          fetch('/api/subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username,
+              tier: checkoutPlan,
+              activationDate: today.toISOString(),
+              expiryDate: expiryDate.toISOString()
+            }),
+          }).catch(e => console.error("Database sync failed", e));
+        }
+
+        setActiveTier(checkoutPlan);
+        setMonthlyEditsLeft(checkoutPlan === 'Yearly Max Plan' ? 999 : 5);
+        setSubDates({
+          activation: formatDate(today.toISOString()),
+          expiry: formatDate(expiryDate.toISOString())
+        });
+
+        localStorage.setItem('vault_tier', checkoutPlan);
+        localStorage.setItem('vault_activation_date', today.toISOString());
+        localStorage.setItem('vault_expiry_date', expiryDate.toISOString());
+      }
+      setCheckoutPlan(null);
+      setPaymentSuccess(false);
+    }, 1800);
+  };
+
   useEffect(() => {
-    const authStatus = localStorage.getItem('vault_auth');
-    if (!authStatus) { router.push('/signup'); return; }
+    const auth = localStorage.getItem('vault_auth');
+    if (!auth) {
+      router.push('/login');
+      return;
+    }
     setIsAuthenticated(true);
 
     const username = localStorage.getItem('vault_username') || 'Developer';
+    const email = localStorage.getItem('vault_email') || '';
+    const phone = localStorage.getItem('vault_phone') || '';
+    setProfile({ username, email, phone });
 
-    setProfile({
-      username: username,
-      email: localStorage.getItem('vault_email') || 'user@vault.ai',
-      phone: localStorage.getItem('vault_phone') || '+91 0000000000'
-    });
+    setNotifications([
+      { id: '1', title: 'Cognitive Engine Active', message: 'Gemini-2.5-flash online and ready.', color: 'bg-neon-cyan' },
+      { id: '2', title: 'System Security', message: 'End-to-end telemetry encryption active.', color: 'bg-emerald-400' }
+    ]);
+    setUnreadCount(2);
 
     const loadSnippets = async () => {
       try {
@@ -265,7 +303,6 @@ export default function Dashboard() {
     })
     .sort((a, b) => sortBy === 'deployed' ? (b.copies || 0) - (a.copies || 0) : b.id.localeCompare(a.id));
 
-  // 🔥 TRENDING CALCULATION  
   const maxCopies = Math.max(...snippets.map(s => s.copies || 0), 0);
   const maxViews = Math.max(...snippets.map(s => s.views || 0), 0);
 
@@ -273,12 +310,10 @@ export default function Dashboard() {
   const filterOptions = ["All", "Starred", ...dynamicLanguages];
 
   const totalSnippetsCount = snippets.length;
-  // ✅ Safe Math applied here to prevent TypeScript errors
   const globalCopiesCount = snippets.reduce((acc, curr) => acc + (curr.copies || 0), 0);
   const totalViewsCount = snippets.reduce((acc, curr) => acc + (curr.views || 0), 0);
 
   const handleMetricUpdate = async (id: string, type: 'copies' | 'views') => {
-    // 1. UI update
     setSnippets(prev => prev.map(s => {
       if (s.id === id) {
         return { ...s, [type]: (s[type] || 0) + 1 };
@@ -286,7 +321,6 @@ export default function Dashboard() {
       return s;
     }));
 
-    // 2. DB Update
     const username = localStorage.getItem('vault_username');
     const snippetToUpdate = snippets.find(s => s.id === id);
     if (!snippetToUpdate || !username) return;
@@ -300,53 +334,57 @@ export default function Dashboard() {
         body: JSON.stringify({ username, snippet: updatedSnippet })
       });
     } catch (error) {
-      console.error("Failed to update metric", error);
+      console.error("Metric sync failed", error);
     }
   };
 
-  const handleAddSnippet = async (newSnippet: Snippet) => {
-    setSnippets([newSnippet, ...snippets]);
-    
-    // 🔥 Notification Push Add
-    setNotifications(prev => [{ id: Date.now().toString(), title: 'Snippet Committed', message: `Added new ${newSnippet.language} snippet: ${newSnippet.title}`, color: 'bg-emerald-400' }, ...prev]);
-    setUnreadCount(prev => prev + 1);
+  const handleToggleStar = async (id: string) => {
+    const updated = snippets.map(s => s.id === id ? { ...s, starred: !s.starred } : s);
+    setSnippets(updated);
 
     const username = localStorage.getItem('vault_username');
-    try {
-      await fetch('/api/snippets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, snippet: newSnippet })
-      });
-    } catch (error) { console.error("Failed to save snippet to DB", error); }
+    const snippetToUpdate = updated.find(s => s.id === id);
+    if (snippetToUpdate && username) {
+      try {
+        await fetch('/api/snippets', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, snippet: snippetToUpdate })
+        });
+      } catch (err) { console.error("Failed to update star", err); }
+    }
   };
 
-  const handleToggleStar = async (id: string) => {
-    const snippetToUpdate = snippets.find(s => s.id === id);
-    if (!snippetToUpdate) return;
-    
-    const updatedSnippet = { ...snippetToUpdate, starred: !snippetToUpdate.starred };
-    setSnippets(snippets.map(s => s.id === id ? updatedSnippet : s));
-    
+  const handleAddSnippet = async (snippet: Snippet) => {
     const username = localStorage.getItem('vault_username');
     try {
-      await fetch('/api/snippets', {
-        method: 'PUT',
+      const res = await fetch('/api/snippets', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, snippet: updatedSnippet })
+        body: JSON.stringify({ username, snippet })
       });
-    } catch (error) { console.error("Failed to star", error); }
+      const data = await res.json();
+      if (data.success) {
+        setSnippets([{ ...snippet, id: data.snippet.snippetId || snippet.id }, ...snippets]);
+        
+        const newNotif = {
+          id: Date.now().toString(),
+          title: 'Snippet Added',
+          message: `Saved "${snippet.title}" to vault.`,
+          color: 'bg-neon-cyan'
+        };
+        setNotifications(prev => [newNotif, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error("Failed to create snippet", error);
+    }
   };
 
   const handleDeleteSnippet = async (id: string) => {
-    const snippetToDelete = snippets.find(s => s.id === id);
     setSnippets(snippets.filter(s => s.id !== id));
-    if (viewSnippet?.id === id) setViewSnippet(null);
-    
-    // 🔥 Notification Push Delete
-    if (snippetToDelete) {
-      setNotifications(prev => [{ id: Date.now().toString(), title: 'Snippet Purged', message: `Deleted snippet: ${snippetToDelete.title}`, color: 'bg-red-500' }, ...prev]);
-      setUnreadCount(prev => prev + 1);
+    if (viewSnippet?.id === id) {
+      setViewSnippet(null);
     }
 
     const username = localStorage.getItem('vault_username');
@@ -392,80 +430,175 @@ export default function Dashboard() {
 
   if (!isAuthenticated) return null;
 
+  // TAB 1: SNIPPETS VIEW
   const renderSnippetsView = () => (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex-1">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black tracking-tight text-white uppercase">Cognitive Workspace Vault</h1>
-        <p className="mt-2 text-[14px] text-white/60 tracking-wide">Secure, morph, and analyze your development components with AI precision.</p>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex-1 w-full">
+      {/* Page Header */}
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_8px_#00f0ff]" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon-cyan">Cognitive Engine Online</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">Cognitive Vault</h1>
+          <p className="mt-1 text-xs sm:text-sm text-zinc-400">Manage, morph, and analyze production code sequences with neural AI.</p>
+        </div>
+
+        <button 
+          onClick={() => setAddOpen(true)} 
+          className="sm:hidden flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-[0_0_20px_rgba(0,240,255,0.35)] active:scale-95"
+        >
+          <Plus size={16} /> New Snippet
+        </button>
       </div>
 
-      <div className="mb-10 grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="rounded-2xl border border-purple-500/40 bg-[#1a0b2e]/50 p-6 backdrop-blur-md flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase font-bold tracking-widest text-white/60">Active Units</p>
-            <p className="text-2xl font-black mt-1 text-white">{totalSnippetsCount}</p>
+      {/* Cyberpunk Neon Stat Cards */}
+      <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Stat 1 */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 backdrop-blur-xl group hover:border-neon-cyan/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+          <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-neon-cyan/10 blur-xl group-hover:bg-neon-cyan/20 transition-colors" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-mono font-bold tracking-widest text-zinc-400">Vault Capacity</p>
+              <p className="text-2xl sm:text-3xl font-black mt-1 text-white tracking-tight">{totalSnippetsCount} <span className="text-xs font-normal text-zinc-500 font-mono">units</span></p>
+            </div>
+            <div className="p-3 rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+              <LayoutGrid size={20}/>
+            </div>
           </div>
-          <div className="p-3 rounded-xl bg-purple-500/20 text-purple-300"><LayoutGrid size={20}/></div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
+            <span className="text-neon-cyan font-bold">{snippets.filter(s => s.starred).length}</span> starred in quick access
+          </div>
         </div>
-        <div className="rounded-2xl border border-purple-500/40 bg-[#1a0b2e]/50 p-6 backdrop-blur-md flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase font-bold tracking-widest text-white/60">Total Executions</p>
-            <p className="text-2xl font-black mt-1 text-emerald-400">{globalCopiesCount}</p>
+
+        {/* Stat 2 */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 backdrop-blur-xl group hover:border-emerald-500/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+          <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-emerald-500/10 blur-xl group-hover:bg-emerald-500/20 transition-colors" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-mono font-bold tracking-widest text-zinc-400">Total Deploys</p>
+              <p className="text-2xl sm:text-3xl font-black mt-1 text-emerald-400 tracking-tight">{globalCopiesCount} <span className="text-xs font-normal text-zinc-500 font-mono">copies</span></p>
+            </div>
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+              <Copy size={20}/>
+            </div>
           </div>
-          <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-300"><Copy size={20}/></div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
+            <span className="text-emerald-400 font-bold">100%</span> zero-latency retrieval
+          </div>
         </div>
-        <div className="rounded-2xl border border-purple-500/40 bg-[#1a0b2e]/50 p-6 backdrop-blur-md flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase font-bold tracking-widest text-white/60">Network Views</p>
-            <p className="text-2xl font-black mt-1 text-cyan-400">{totalViewsCount}</p>
+
+        {/* Stat 3 */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 backdrop-blur-xl group hover:border-neon-magenta/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+          <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-neon-magenta/10 blur-xl group-hover:bg-neon-magenta/20 transition-colors" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-mono font-bold tracking-widest text-zinc-400">Diagnostic Scans</p>
+              <p className="text-2xl sm:text-3xl font-black mt-1 text-neon-magenta tracking-tight">{totalViewsCount} <span className="text-xs font-normal text-zinc-500 font-mono">views</span></p>
+            </div>
+            <div className="p-3 rounded-xl bg-neon-magenta/10 border border-neon-magenta/20 text-neon-magenta shadow-[0_0_15px_rgba(255,0,255,0.2)]">
+              <Activity size={20}/>
+            </div>
           </div>
-          <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-300"><Activity size={20}/></div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
+            <span className="text-neon-magenta font-bold">{snippets.filter(s => s.xray).length}</span> snippets with X-Ray active
+          </div>
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-2">
+      {/* Filter and Sorting Controls */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Horizontal scrollable pill filters on mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
           {filterOptions.map(option => (
             <button 
               key={option} 
               onClick={() => setActiveFilter(option)} 
-              className={`rounded-full border px-4 py-1.5 text-[12px] font-bold uppercase tracking-wider transition-colors ${activeFilter === option ? 'border-purple-500/60 bg-purple-500/30 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'border-purple-500/20 bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'}`}
+              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-mono font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                activeFilter === option 
+                  ? 'border-neon-cyan bg-neon-cyan/15 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.3)]' 
+                  : 'border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
+              }`}
             >
-              {option === 'Starred' ? <span className="flex items-center gap-1.5"><Star size={12} fill="currentColor"/> {option}</span> : option}
+              {option === 'Starred' ? (
+                <span className="flex items-center gap-1.5"><Star size={12} fill="currentColor" className="text-amber-400"/> {option}</span>
+              ) : option}
             </button>
           ))}
         </div>
-        <div className="flex items-center rounded-xl border border-purple-500/40 bg-[#120524] p-1">
-          <button onClick={() => setSortBy('newest')} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all ${sortBy === 'newest' ? 'bg-purple-500/30 text-purple-200' : 'text-white/50 hover:text-white/80'}`}><Clock className="h-3 w-3" /> Newest</button>
-          <button onClick={() => setSortBy('deployed')} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all ${sortBy === 'deployed' ? 'bg-purple-500/30 text-purple-200' : 'text-white/50 hover:text-white/80'}`}><Flame className="h-3 w-3" /> Deployed</button>
+
+        {/* Sort buttons */}
+        <div className="flex items-center self-start sm:self-auto rounded-xl border border-white/10 bg-white/5 p-1">
+          <button 
+            onClick={() => setSortBy('newest')} 
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              sortBy === 'newest' ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Clock className="h-3 w-3" /> Newest
+          </button>
+          <button 
+            onClick={() => setSortBy('deployed')} 
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              sortBy === 'deployed' ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Flame className="h-3 w-3" /> Deployed
+          </button>
         </div>
       </div>
 
-      <motion.div layout className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <AnimatePresence mode="popLayout">
-          {visibleSnippets.map((s, i) => {
-            // 🔥 Trending Logic added here
-            const isTrending = (maxCopies > 0 && s.copies === maxCopies) || (maxViews > 0 && s.views === maxViews);
+      {/* Snippet Grid */}
+      {visibleSnippets.length === 0 ? (
+        <div className="rounded-2xl border border-white/10 bg-[#12121A]/60 p-12 text-center backdrop-blur-xl">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-zinc-500">
+            <Code2 size={24} />
+          </div>
+          <h3 className="text-base font-bold text-white mb-1">No Snippets Found</h3>
+          <p className="text-xs text-zinc-400 max-w-sm mx-auto mb-6">
+            {activeFilter !== "All" ? `No snippets match filter "${activeFilter}".` : "Your neural vault is currently empty. Add your first code block to get started."}
+          </p>
+          <button 
+            onClick={() => setAddOpen(true)} 
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_0_20px_rgba(0,240,255,0.35)]"
+          >
+            <Plus size={14} /> Add Snippet Now
+          </button>
+        </div>
+      ) : (
+        <motion.div layout className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <AnimatePresence mode="popLayout">
+            {visibleSnippets.map((s, i) => {
+              const isTrending = (maxCopies > 0 && s.copies === maxCopies) || (maxViews > 0 && s.views === maxViews);
 
-            return (
-              <motion.div layout initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.3, delay: i * 0.05 }} key={s.id} className="h-full">
-                {/* ✅ BUG FIXED: onUpdateMetric & isTrending are passed perfectly */}
-                <SnippetCard 
-                  snippet={s} 
-                  isTrending={isTrending}
-                  onToggleStar={handleToggleStar} 
-                  onEdit={setEditSnippet} 
-                  onDelete={handleDeleteSnippet} 
-                  onUpdateMetric={handleMetricUpdate}
-                />
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </motion.div>
+              return (
+                <motion.div 
+                  layout 
+                  initial={{ opacity: 0, scale: 0.95, y: 15 }} 
+                  animate={{ opacity: 1, scale: 1, y: 0 }} 
+                  exit={{ opacity: 0, scale: 0.95 }} 
+                  transition={{ duration: 0.25, delay: i * 0.04 }} 
+                  key={s.id} 
+                  className="h-full"
+                >
+                  <SnippetCard 
+                    snippet={s} 
+                    isTrending={isTrending}
+                    onToggleStar={handleToggleStar} 
+                    onEdit={setEditSnippet} 
+                    onDelete={handleDeleteSnippet} 
+                    onUpdateMetric={handleMetricUpdate}
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
+      )}
     </motion.div>
   );
 
+  // TAB 2: LANGUAGES MATRIX
   const renderLanguagesView = () => {
     const langStats = snippets.reduce((acc, curr) => {
       if (!acc[curr.language]) acc[curr.language] = { count: 0, lines: 0, copies: 0 };
@@ -476,79 +609,91 @@ export default function Dashboard() {
     }, {} as Record<string, { count: number, lines: number, copies: number }>);
 
     return (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1">
-        <div className="mb-8">
-          <h1 className="text-3xl font-black tracking-tight text-white uppercase">Language Matrix</h1>
-          <p className="mt-2 text-[14px] text-white/60">Advanced analytics of your neural architecture deployment.</p>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 w-full">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">Polyglot Matrix</h1>
+          <p className="mt-1 text-xs sm:text-sm text-zinc-400">Deep telemetry of language usage, lines of code, and deployment frequency.</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Object.entries(langStats).map(([lang, stats]) => (
-            <div key={lang} className="group relative overflow-hidden rounded-2xl border border-purple-500/30 bg-[#1a0b2e]/60 p-6 backdrop-blur-md transition-all hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_8px_30px_rgba(168,85,247,0.25)]">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/20 border border-purple-500/30 group-hover:bg-purple-500/30 transition-colors">
-                <Code2 className="h-6 w-6 text-purple-300" />
-              </div>
-              <h3 className="text-xl font-bold text-white">{lang}</h3>
-              <p className="mt-1 text-sm text-purple-200/80">{stats.count} active snippet{stats.count !== 1 && 's'}</p>
-              
-              <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">Total LOC</span>
-                  <span className="text-sm font-bold text-white/90">{stats.lines} lines</span>
-                </div>
-                <div className="flex flex-col text-right">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">Utilization</span>
-                  <span className="text-sm font-bold text-emerald-400">{stats.copies} deploys</span>
-                </div>
-              </div>
 
-              <div className="mt-5 h-1.5 w-full rounded-full bg-black/50 overflow-hidden">
-                <div className="h-full rounded-full bg-gradient-to-r from-purple-500 to-cyan-400" style={{ width: `${Math.min((stats.count / snippets.length) * 100 * 2, 100)}%` }} />
+        {Object.keys(langStats).length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-[#12121A]/60 p-12 text-center text-zinc-500 font-mono text-xs">
+            Ingest code sequences into the vault to generate matrix telemetry.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Object.entries(langStats).map(([lang, stats]) => (
+              <div key={lang} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl transition-all hover:border-neon-cyan/50 hover:shadow-[0_10px_30px_rgba(0,240,255,0.15)]">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan group-hover:bg-neon-cyan/20 transition-colors">
+                  <Code2 className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white">{lang}</h3>
+                <p className="mt-1 text-xs text-zinc-400 font-mono">{stats.count} active snippet{stats.count !== 1 && 's'}</p>
+                
+                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">Volume</span>
+                    <span className="text-sm font-bold text-white font-mono">{stats.lines} lines</span>
+                  </div>
+                  <div className="flex flex-col text-right">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">Deployment</span>
+                    <span className="text-sm font-bold text-emerald-400 font-mono">{stats.copies} copies</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 h-1.5 w-full rounded-full bg-black/60 overflow-hidden border border-white/5">
+                  <div className="h-full rounded-full bg-gradient-to-r from-neon-cyan to-blue-600" style={{ width: `${Math.min((stats.count / (snippets.length || 1)) * 100 * 2, 100)}%` }} />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     );
   };
 
+  // TAB 3: INTEGRATIONS VIEW
   const renderIntegrationsView = () => {
     const integrations = [
       { name: 'GitHub Gists', desc: 'Auto-sync your vault to private Gists.', icon: GitBranch, connected: githubConnected, pro: false, loading: githubLoading, setLoad: setGithubLoading, setConn: setGithubConnected },
       { name: 'VS Code Sync', desc: 'Access your snippets directly in your IDE.', icon: Terminal, connected: vscodeConnected, pro: true, loading: vscodeLoading, setLoad: setVscodeLoading, setConn: setVscodeConnected },
-      { name: 'Raycast', desc: 'Global command-line access to your vault.', icon: Search, connected: false, pro: false, loading: false, setLoad: ()=>{}, setConn: ()=>{} },
+      { name: 'Raycast Extension', desc: 'Global command-line access to your vault.', icon: Search, connected: false, pro: false, loading: false, setLoad: ()=>{}, setConn: ()=>{} },
       { name: 'API Webhooks', desc: 'Trigger external actions on snippet creation.', icon: Share2, connected: false, pro: true, loading: false, setLoad: ()=>{}, setConn: ()=>{} },
     ];
 
     return (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1">
-        <div className="mb-8">
-          <h1 className="text-3xl font-black tracking-tight text-white uppercase">System Integrations</h1>
-          <p className="mt-2 text-[14px] text-white/60">Connect Vantage AI to your external workflows.</p>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 w-full">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">System Integrations</h1>
+          <p className="mt-1 text-xs sm:text-sm text-zinc-400">Connect Vantage AI directly into your IDE, CLI, and team workflow tools.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {integrations.map((int) => (
-            <div key={int.name} className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-2xl border border-purple-500/30 bg-[#1a0b2e]/60 p-6 backdrop-blur-md transition-all hover:border-purple-500/50 hover:shadow-[0_8px_30px_rgba(168,85,247,0.25)]">
+            <div key={int.name} className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl transition-all hover:border-white/20">
               <div className="flex items-start gap-4">
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${int.connected ? 'border-emerald-500/50 bg-emerald-500/20' : 'border-purple-500/40 bg-purple-500/20'}`}>
-                  <int.icon className={`h-6 w-6 ${int.connected ? 'text-emerald-300' : 'text-purple-300'}`} />
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${int.connected ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-white/10 bg-white/5 text-neon-cyan'}`}>
+                  <int.icon className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
                     {int.name}
-                    {int.connected && <span className="rounded bg-emerald-500/30 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">Connected</span>}
-                    {int.pro && !int.connected && <span className="rounded bg-gradient-to-r from-purple-500 to-cyan-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">PRO</span>}
+                    {int.connected && <span className="rounded bg-emerald-500/20 border border-emerald-500/30 px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-emerald-300">Connected</span>}
+                    {int.pro && !int.connected && <span className="rounded bg-neon-cyan/20 border border-neon-cyan/40 px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-neon-cyan">PRO</span>}
                   </h3>
-                  <p className="mt-1 text-sm text-white/60">{int.desc}</p>
+                  <p className="mt-1 text-xs text-zinc-400 leading-relaxed">{int.desc}</p>
                 </div>
               </div>
               <button 
                 onClick={() => {
-                  if(int.name === 'Raycast' || int.name === 'API Webhooks') return;
+                  if(int.name === 'Raycast Extension' || int.name === 'API Webhooks') return;
                   int.setLoad(true); 
                   setTimeout(() => { int.setConn(true); int.setLoad(false); }, 1500); 
                 }} 
                 disabled={int.connected || int.loading} 
-                className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${int.connected ? 'border border-emerald-500/40 bg-emerald-500/20 text-emerald-300 cursor-default' : 'bg-purple-600 text-white shadow-[0_4px_15px_rgba(124,58,237,0.5)] hover:bg-purple-500 active:scale-95'}`}
+                className={`shrink-0 rounded-xl px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                  int.connected 
+                    ? 'border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 cursor-default' 
+                    : 'bg-white/10 text-white border border-white/15 hover:bg-neon-cyan hover:text-black hover:border-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.2)] active:scale-95'
+                }`}
               >
                 {int.loading ? 'Connecting...' : int.connected ? 'Connected' : 'Connect'}
               </button>
@@ -559,6 +704,7 @@ export default function Dashboard() {
     );
   };
 
+  // TAB 4: SETTINGS & BILLING
   const renderSettingsView = () => {
     const tiers: Tier[] = [
       { name: "Free Trial", price: "$0", period: "/forever", desc: "For individual developers.", features: ["Up to 3 snippets", "Manual ingestion", "Basic search"], highlight: false },
@@ -570,55 +716,68 @@ export default function Dashboard() {
 
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-5xl mx-auto w-full">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-white uppercase">Settings & Billing</h1>
-            <p className="mt-2 text-[14px] text-white/60">Manage your account, profile details, and subscription tier.</p>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">Settings & Billing</h1>
+            <p className="mt-1 text-xs sm:text-sm text-zinc-400">Manage account credentials, active tier, and security preferences.</p>
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/20 px-4 py-2.5 text-[13px] font-bold text-red-300 transition-all hover:bg-red-500/30 active:scale-95">
-            <LogOut size={16} /> Logout
+          <button 
+            onClick={handleLogout} 
+            className="self-start sm:self-auto flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs font-semibold text-red-300 transition-all hover:bg-red-500/20 active:scale-95 cursor-pointer"
+          >
+            <LogOut size={14} /> Disconnect Session
           </button>
         </div>
 
-        <div className="mb-10 rounded-2xl border border-purple-500/40 bg-[#1a0b2e]/60 p-6 backdrop-blur-md">
-          <h3 className="text-xs font-black uppercase tracking-widest text-purple-300 mb-4 border-b border-purple-500/20 pb-2">Developer Profile</h3>
+        {/* Profile Card */}
+        <div className="mb-8 rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl">
+          <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon-cyan mb-4 border-b border-white/10 pb-2">Developer Identity</h3>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-cyan-400 text-3xl font-bold text-white shadow-[0_0_30px_rgba(124,58,237,0.5)]">
+            <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-cyan to-blue-600 text-2xl font-bold text-white shadow-[0_0_25px_rgba(0,240,255,0.4)]">
               {userInitials}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-4 flex-1 w-full">
-              <div><span className="text-[10px] text-white/50 uppercase tracking-widest font-bold block mb-1">Username</span><p className="font-bold text-white font-mono">@{profile.username}</p></div>
-              <div><span className="text-[10px] text-white/50 uppercase tracking-widest font-bold block mb-1">Account Email</span><p className="font-bold text-white font-mono">{profile.email}</p></div>
-              <div><span className="text-[10px] text-white/50 uppercase tracking-widest font-bold block mb-1">Phone Link</span><p className="font-bold text-white font-mono">{profile.phone}</p></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 flex-1 w-full">
+              <div><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Username</span><p className="font-bold text-white font-mono text-sm">@{profile.username}</p></div>
+              <div><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Email</span><p className="font-bold text-white font-mono text-sm truncate">{profile.email}</p></div>
+              <div><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Phone</span><p className="font-bold text-white font-mono text-sm">{profile.phone || 'Not configured'}</p></div>
               
-              <div className="pt-2"><span className="text-[10px] text-white/50 uppercase tracking-widest font-bold block mb-1">Active Plan</span><p className="font-bold text-cyan-300 uppercase tracking-wide">{activeTier}</p></div>
-              <div className="pt-2"><span className="text-[10px] text-white/50 uppercase tracking-widest font-bold block mb-1">Activation Date</span><p className="font-bold text-emerald-400 font-mono">{subDates.activation}</p></div>
-              <div className="pt-2"><span className="text-[10px] text-white/50 uppercase tracking-widest font-bold block mb-1">Expiry Date</span><p className="font-bold text-red-400 font-mono">{subDates.expiry}</p></div>
+              <div className="pt-2"><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Active Plan</span><p className="font-bold text-neon-cyan uppercase tracking-wide text-sm">{activeTier}</p></div>
+              <div className="pt-2"><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Activated</span><p className="font-bold text-emerald-400 font-mono text-sm">{subDates.activation}</p></div>
+              <div className="pt-2"><span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold block mb-1">Expires</span><p className="font-bold text-zinc-300 font-mono text-sm">{subDates.expiry}</p></div>
             </div>
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-white mb-4">Subscription Tiers</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h2 className="text-lg font-bold text-white mb-4">Subscription Tiers</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {tiers.map((tier) => (
-            <div key={tier.name} className={`relative flex flex-col rounded-2xl border ${tier.highlight ? 'border-cyan-500/60 bg-gradient-to-b from-[#1a0b2e]/90 to-[#120524]/90' : 'border-purple-500/30 bg-[#1a0b2e]/50'} p-6 backdrop-blur-md transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(124,58,237,0.25)]`}>
-              {tier.highlight && <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">Most Popular</div>}
-              <h3 className="text-lg font-bold text-white">{tier.name}</h3>
+            <div key={tier.name} className={`relative flex flex-col rounded-2xl border ${tier.highlight ? 'border-neon-cyan/50 bg-[#12121A]/95 shadow-[0_10px_40px_rgba(0,240,255,0.15)]' : 'border-white/10 bg-[#12121A]/60'} p-6 backdrop-blur-xl transition-all`}>
+              {tier.highlight && <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-neon-cyan to-blue-600 px-3 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-white shadow-md">Recommended</div>}
+              <h3 className="text-base font-bold text-white">{tier.name}</h3>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-3xl font-black text-white">{tier.price}</span>
-                <span className="text-sm font-medium text-white/60">{tier.period}</span>
+                <span className="text-3xl font-black text-white tracking-tight">{tier.price}</span>
+                <span className="text-xs font-mono text-zinc-400">{tier.period}</span>
               </div>
-              <p className="mt-3 text-sm text-white/70">{tier.desc}</p>
-              <div className="my-6 h-[1px] w-full bg-white/20" />
-              <ul className="mb-8 flex flex-col gap-3 flex-1">
+              <p className="mt-2 text-xs text-zinc-400">{tier.desc}</p>
+              <div className="my-5 h-px w-full bg-white/10" />
+              <ul className="mb-6 flex flex-col gap-2.5 flex-1">
                 {tier.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-white/80">
-                    <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />{f}
+                  <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                    <CheckCircle2 size={14} className="text-neon-cyan shrink-0 mt-0.5" />{f}
                   </li>
                 ))}
               </ul>
-              <button onClick={() => handleSelectTier(tier.name as SubscriptionTier)} className={`mt-auto w-full rounded-xl px-4 py-3 text-sm font-bold transition-all active:scale-95 ${activeTier === tier.name ? 'border border-purple-500/40 bg-purple-500/20 text-purple-200' : tier.highlight ? 'bg-cyan-500 text-black shadow-[0_4px_20px_rgba(6,182,212,0.6)] hover:bg-cyan-400' : 'bg-purple-600 text-white shadow-[0_4px_15px_rgba(124,58,237,0.5)] hover:bg-purple-500'}`}>
-                {activeTier === tier.name ? 'Current Plan' : 'Select Plan'}
+              <button 
+                onClick={() => handleSelectTier(tier.name as SubscriptionTier)} 
+                className={`mt-auto w-full rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
+                  activeTier === tier.name 
+                    ? 'border border-neon-cyan/40 bg-neon-cyan/15 text-neon-cyan' 
+                    : tier.highlight 
+                      ? 'bg-gradient-to-r from-neon-cyan to-blue-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:opacity-90' 
+                      : 'border border-white/10 bg-white/5 text-white hover:bg-white/10'
+                }`}
+              >
+                {activeTier === tier.name ? 'Active Plan' : 'Select Plan'}
               </button>
             </div>
           ))}
@@ -627,44 +786,62 @@ export default function Dashboard() {
     );
   };
 
+  // TAB 5: ABOUT & DOCUMENTATION
   const renderAboutView = () => (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-4xl mx-auto w-full pb-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black tracking-tight text-white uppercase">Documentation & Guide</h1>
-        <p className="mt-2 text-[14px] text-white/60">Complete operational manual for Vantage AI features and workflows.</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">Documentation & Manual</h1>
+        <p className="mt-1 text-xs sm:text-sm text-zinc-400">Complete architectural guide to Vantage AI workflows and capabilities.</p>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <div className="rounded-2xl border border-white/10 bg-[#12121A]/80 p-8 backdrop-blur-md">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Server className="text-neon-cyan"/> How Vantage AI Works</h2>
-          <p className="text-white/70 leading-relaxed text-sm mb-4">Vantage AI is a cognitive workspace and snippet repository. Instead of manually organizing code, you simply paste raw sequences into the system. The Gemini Neural Engine automatically analyzes the syntax, deduces the programming language, generates a descriptive title, and assigns searchable tags. Everything is instantly synced and accessible via the global Command Palette.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-            <div className="bg-black/40 p-4 rounded-xl border border-white/5"><span className="text-cyan-400 font-black text-lg block mb-1">01</span><h4 className="font-bold text-white text-sm mb-1">Commit</h4><p className="text-xs text-white/50">Paste raw code into the Vault.</p></div>
-            <div className="bg-black/40 p-4 rounded-xl border border-white/5"><span className="text-purple-400 font-black text-lg block mb-1">02</span><h4 className="font-bold text-white text-sm mb-1">Process</h4><p className="text-xs text-white/50">AI generates metadata and tags.</p></div>
-            <div className="bg-black/40 p-4 rounded-xl border border-white/5"><span className="text-emerald-400 font-black text-lg block mb-1">03</span><h4 className="font-bold text-white text-sm mb-1">Deploy</h4><p className="text-xs text-white/50">Search, copy, and ship instantly.</p></div>
+      <div className="flex flex-col gap-5">
+        <div className="rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 sm:p-8 backdrop-blur-xl">
+          <h2 className="text-base sm:text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <Server className="text-neon-cyan" size={18} /> How Vantage AI Operates
+          </h2>
+          <p className="text-zinc-300 leading-relaxed text-xs sm:text-sm mb-4">
+            Vantage AI is a distributed cognitive workspace for code components. Instead of manually bookmarking scripts, paste raw code sequences into the vault. The Gemini Neural Engine automatically isolates syntax, determines language constraints, derives semantic metadata, and builds searchable vector tags.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
+            <div className="bg-black/50 p-4 rounded-xl border border-white/5">
+              <span className="text-neon-cyan font-mono font-black text-base block mb-1">01. INGEST</span>
+              <h4 className="font-bold text-white text-xs mb-1">Input Code</h4>
+              <p className="text-[11px] text-zinc-400 leading-normal">Paste raw snippets or record voice instructions via Jarvis.</p>
+            </div>
+            <div className="bg-black/50 p-4 rounded-xl border border-white/5">
+              <span className="text-neon-magenta font-mono font-black text-base block mb-1">02. ANALYZE</span>
+              <h4 className="font-bold text-white text-xs mb-1">AI Metadata</h4>
+              <p className="text-[11px] text-zinc-400 leading-normal">Complexity scanner maps Big-O bounds and potential bugs.</p>
+            </div>
+            <div className="bg-black/50 p-4 rounded-xl border border-white/5">
+              <span className="text-emerald-400 font-mono font-black text-base block mb-1">03. SHIP</span>
+              <h4 className="font-bold text-white text-xs mb-1">Zero-Latency Sync</h4>
+              <p className="text-[11px] text-zinc-400 leading-normal">Instant ⌘K retrieval and cross-language Polyglot morphing.</p>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-2xl border border-cyan-500/30 bg-[#1a0b2e]/60 p-6 backdrop-blur-md">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/20 border border-cyan-500/40"><Sparkles className="h-5 w-5 text-cyan-300" /></div>
-            <h3 className="text-lg font-bold text-white mb-2">Neural Morph Engine</h3>
-            <p className="text-white/60 text-xs leading-relaxed mb-3"><strong>Use Case:</strong> Porting code between different tech stacks.</p>
-            <p className="text-white/60 text-xs leading-relaxed">Open any snippet in the edit modal, select a target language from the dropdown, and execute the Morph. The AI will instantly rewrite the logic into the new syntax while preserving the core algorithm.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-white mb-1.5">Polyglot Morph Engine</h3>
+            <p className="text-zinc-400 text-xs leading-relaxed mb-3"><strong>Core Utility:</strong> Multi-stack logic conversion without rewrites.</p>
+            <p className="text-zinc-400 text-xs leading-relaxed">
+              Open any snippet in the edit modal, select a target language from the dropdown, and execute Morph. The neural engine rewires the implementation while preserving strict algorithmic invariants.
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-emerald-500/30 bg-[#1a0b2e]/60 p-6 backdrop-blur-md">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 border border-emerald-500/40"><BrainCircuit className="h-5 w-5 text-emerald-300" /></div>
-            <h3 className="text-lg font-bold text-white mb-2">Cognitive X-Ray</h3>
-            <p className="text-white/60 text-xs leading-relaxed mb-3"><strong>Use Case:</strong> Debugging and algorithm optimization.</p>
-            <p className="text-white/60 text-xs leading-relaxed">Click 'Run Diagnostics' on any snippet card. The AI calculates Big-O Time & Space complexity, breaks down the execution flow step-by-step, and scans for critical edge-case vulnerabilities.</p>
-          </div>
-          
-          <div className="rounded-2xl border border-purple-500/30 bg-[#1a0b2e]/60 p-6 backdrop-blur-md md:col-span-2">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/20 border border-purple-500/40"><Search className="h-5 w-5 text-purple-300" /></div>
-            <h3 className="text-lg font-bold text-white mb-2">Global Command Palette</h3>
-            <p className="text-white/60 text-xs leading-relaxed mb-3"><strong>Use Case:</strong> Lightning-fast retrieval during active development.</p>
-            <p className="text-white/60 text-xs leading-relaxed">Press <kbd className="bg-white/10 px-1.5 py-0.5 rounded border border-white/20 mx-1 font-mono">⌘K</kbd> from anywhere in the dashboard to trigger the fuzzy search matrix. Search by title, language, or AI-generated tags to instantly locate and view your exact neural pathway without leaving your keyboard.</p>
+          <div className="rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+              <BrainCircuit className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-white mb-1.5">Cognitive X-Ray</h3>
+            <p className="text-zinc-400 text-xs leading-relaxed mb-3"><strong>Core Utility:</strong> Algorithmic profiling and vulnerability audits.</p>
+            <p className="text-zinc-400 text-xs leading-relaxed">
+              Click &apos;Run Diagnostics&apos; on any snippet card. The system benchmarks Big-O Time & Space complexities, traces operational paths, and alerts on edge-case memory bounds.
+            </p>
           </div>
         </div>
       </div>
@@ -672,89 +849,118 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen w-full bg-black overflow-hidden text-white selection:bg-cyan-500/30">
+    <div className="flex h-screen w-full bg-black overflow-hidden text-white selection:bg-neon-cyan/30">
       <Sidebar open={sideOpen} onClose={() => setSideOpen(false)} activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative z-10">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/10 bg-[#0e0e14]/85 px-5 py-3 backdrop-blur-2xl">
-          <button onClick={() => setSideOpen(true)} className="rounded-lg border border-white/20 bg-white/10 p-2 text-white/80 lg:hidden hover:bg-white/20 hover:text-white transition-colors cursor-pointer"><Menu className="h-5 w-5" /></button>
-          
-          <div onClick={() => setCmdOpen(true)} className="flex flex-1 max-w-sm cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 transition-colors hover:border-neon-cyan/50 hover:bg-white/10">
-            <Search className="h-4 w-4 text-neon-cyan" />
-            <span className="flex-1 text-[13px] text-zinc-400">Search workspace...</span>
-            <kbd className="rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] text-zinc-400">⌘K</kbd>
-          </div>
-          
-          <div className="flex-1" />
-
-          {/* 🔥 JARVIS MIC ADDED HERE */}
-          <div className="hidden sm:block">
-            <JarvisMic onSnippetGenerated={(newAiSnippet) => {
-              handleAddSnippet({
-                id: crypto.randomUUID(),
-                title: newAiSnippet.title || "Jarvis Snippet",
-                language: newAiSnippet.language || "TypeScript",
-                code: newAiSnippet.code || "",
-                tags: newAiSnippet.tags || [],
-                description: newAiSnippet.description || "",
-                starred: false,
-                copies: 0,
-                views: 0
-              });
-            }} />
-          </div>
-          
-          {/* 🔥 MODIFIED: Notification Bell with Badge Logic */}
-          <div className="relative hidden sm:block">
+        {/* Responsive Dashboard Header */}
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-[#07070A]/90 px-4 sm:px-6 py-3 backdrop-blur-2xl">
+          {/* Left: Mobile Menu + Search */}
+          <div className="flex items-center gap-2.5 flex-1 max-w-md">
             <button 
-              onClick={() => { setNotificationsOpen(!notificationsOpen); setUnreadCount(0); }} 
-              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-white hover:border-neon-cyan/50 transition-all relative shadow-lg cursor-pointer"
+              onClick={() => setSideOpen(true)} 
+              className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300 lg:hidden hover:bg-white/10 hover:text-white transition-colors cursor-pointer active:scale-95 shrink-0"
+              aria-label="Toggle navigation"
             >
-              <Bell size={18} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-2 h-4 w-4 rounded-full bg-neon-cyan text-[9px] flex items-center justify-center font-bold text-black border border-black">
-                  {unreadCount}
-                </span>
-              )}
+              <Menu className="h-5 w-5" />
             </button>
             
-            <AnimatePresence>
-              {notificationsOpen && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 top-12 mt-2 w-80 rounded-2xl border border-white/10 bg-[#12121A]/95 p-4 shadow-2xl backdrop-blur-3xl z-50">
-                  <div className="flex items-center justify-between border-b border-white/20 pb-3 mb-3">
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Activity Log</h3>
-                    {unreadCount > 0 && <span className="text-[10px] bg-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>}
-                  </div>
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto scrollbar-thin">
-                    {notifications.length === 0 ? (
-                      <p className="text-xs text-white/50 text-center py-4">No recent activity.</p>
-                    ) : (
-                      notifications.map(notif => (
-                        <div key={notif.id} className="flex gap-3 items-start p-2 hover:bg-white/10 rounded-xl cursor-pointer transition-colors">
-                          <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 shadow-[0_0_8px_rgba(255,255,255,0.2)] ${notif.color}`}></div>
-                          <div>
-                            <p className="text-sm text-white font-bold">{notif.title}</p>
-                            <p className="text-xs text-white/70 mt-0.5">{notif.message}</p>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div 
+              onClick={() => setCmdOpen(true)} 
+              className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 transition-all hover:border-neon-cyan/50 hover:bg-white/10"
+            >
+              <Search className="h-4 w-4 text-neon-cyan shrink-0" />
+              <span className="flex-1 text-xs text-zinc-400 truncate">Search vault...</span>
+              <kbd className="hidden sm:inline-block rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-400 font-mono">⌘K</kbd>
+            </div>
           </div>
 
-          <button onClick={() => setActiveTab('about')} className="hidden sm:flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-purple-200 hover:text-white px-3 py-2 rounded-lg transition-colors border border-purple-500/30 bg-purple-500/20 hover:bg-purple-500/40">
-            <BookOpen size={14} /> View Docs
-          </button>
-          
-          <button onClick={() => setAddOpen(true)} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 px-4 py-2.5 text-[13px] font-bold text-white shadow-[0_4px_20px_rgba(124,58,237,0.5)] transition-all hover:-translate-y-px active:scale-95">
-            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New Snippet</span>
-          </button>
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Jarvis Mic */}
+            <div className="hidden sm:block">
+              <JarvisMic onSnippetGenerated={(newAiSnippet) => {
+                handleAddSnippet({
+                  id: crypto.randomUUID(),
+                  title: newAiSnippet.title || "Jarvis Snippet",
+                  language: newAiSnippet.language || "TypeScript",
+                  code: newAiSnippet.code || "",
+                  tags: newAiSnippet.tags || [],
+                  description: newAiSnippet.description || "",
+                  starred: false,
+                  copies: 0,
+                  views: 0
+                });
+              }} />
+            </div>
+            
+            {/* Notification Bell */}
+            <div className="relative">
+              <button 
+                onClick={() => { setNotificationsOpen(!notificationsOpen); setUnreadCount(0); }} 
+                className="p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:border-neon-cyan/50 transition-all relative cursor-pointer"
+                aria-label="View notifications"
+              >
+                <Bell size={16} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-neon-cyan text-[8px] flex items-center justify-center font-bold text-black shadow-[0_0_8px_#00f0ff]">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              
+              <AnimatePresence>
+                {notificationsOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }} 
+                    animate={{ opacity: 1, y: 0, scale: 1 }} 
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }} 
+                    className="absolute right-0 top-12 mt-2 w-72 sm:w-80 rounded-2xl border border-white/10 bg-[#12121A]/95 p-4 shadow-2xl backdrop-blur-3xl z-50"
+                  >
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-2.5">
+                      <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider">Activity Stream</h3>
+                      {unreadCount > 0 && <span className="text-[10px] bg-neon-cyan/20 text-neon-cyan px-2 py-0.5 rounded-full font-mono">{unreadCount} New</span>}
+                    </div>
+                    <div className="space-y-2.5 max-h-[260px] overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <p className="text-xs text-zinc-500 text-center py-4 font-mono">No recent activity.</p>
+                      ) : (
+                        notifications.map(notif => (
+                          <div key={notif.id} className="flex gap-2.5 items-start p-2 hover:bg-white/5 rounded-xl transition-colors">
+                            <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${notif.color}`}></div>
+                            <div>
+                              <p className="text-xs text-white font-bold">{notif.title}</p>
+                              <p className="text-[11px] text-zinc-400 mt-0.5">{notif.message}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Docs link */}
+            <button 
+              onClick={() => setActiveTab('about')} 
+              className="hidden md:flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300 hover:text-white px-3 py-2 rounded-xl transition-all border border-white/10 bg-white/5 hover:border-neon-cyan/40"
+            >
+              <BookOpen size={13} /> Docs
+            </button>
+            
+            {/* Primary Add Button */}
+            <button 
+              onClick={() => setAddOpen(true)} 
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_0_20px_rgba(0,240,255,0.35)] transition-all hover:opacity-90 active:scale-95 cursor-pointer"
+            >
+              <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Add Snippet</span>
+            </button>
+          </div>
         </header>
 
-        <div className="flex-1 p-6 lg:p-8">
+        {/* Dashboard Content Container */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           <AnimatePresence mode="wait">
             {activeTab === 'snippets' && renderSnippetsView()}
             {activeTab === 'languages' && renderLanguagesView()}
@@ -767,50 +973,82 @@ export default function Dashboard() {
 
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} onSelect={setViewSnippet} snippets={snippets} />
 
+      {/* Snippet Detail Modal */}
       <AnimatePresence>
         {activeViewSnippet && (
-          <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-purple-500/50 bg-[#110726]/95 shadow-2xl backdrop-blur-3xl flex flex-col max-h-[85vh]">
-              <div className="flex items-center justify-between border-b border-white/20 px-6 py-5 bg-[#1a0b2e]/60">
-                <div className="flex items-center gap-3">
-                  <span className="rounded-lg border border-purple-500/40 bg-purple-500/20 px-3 py-1 text-xs font-bold text-purple-200 uppercase tracking-wider">{activeViewSnippet.language}</span>
-                  <h2 className="text-xl font-bold text-white">{activeViewSnippet.title}</h2>
+          <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              exit={{ opacity: 0, scale: 0.95 }} 
+              className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-[#0e0e14]/95 shadow-[0_25px_80px_rgba(0,0,0,0.9)] backdrop-blur-3xl flex flex-col max-h-[88vh]"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-white/10 px-4 sm:px-6 py-4 bg-[#12121A]/60">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-2.5 py-1 text-[10px] font-mono font-bold text-neon-cyan uppercase tracking-wider shrink-0">
+                    {activeViewSnippet.language}
+                  </span>
+                  <h2 className="text-sm sm:text-lg font-bold text-white truncate">{activeViewSnippet.title}</h2>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleDeleteSnippet(activeViewSnippet.id)} className="rounded-lg bg-white/10 p-2 text-white/80 hover:bg-red-500/30 hover:text-red-300 transition-colors" title="Delete Snippet"><Trash2 size={18} /></button>
-                  <button onClick={() => { setEditSnippet(activeViewSnippet); setViewSnippet(null); }} className="rounded-lg bg-white/10 p-2 text-white/80 hover:bg-cyan-500/30 hover:text-cyan-300 transition-colors" title="Edit Snippet"><Edit2 size={18} /></button>
-                  <button onClick={() => handleToggleStar(activeViewSnippet.id)} className="rounded-lg bg-white/10 p-2 text-white/80 hover:bg-amber-500/30 hover:text-amber-300 transition-colors" title="Star Snippet"><Star size={18} fill={activeViewSnippet.starred ? "#f59e0b" : "none"} color={activeViewSnippet.starred ? "#f59e0b" : "currentColor"} /></button>
-                  <div className="w-px h-6 bg-white/20 mx-1"></div>
-                  <button onClick={() => setViewSnippet(null)} className="rounded-lg bg-white/10 p-2 text-white/80 hover:bg-white/20 hover:text-white transition-colors"><X size={20} /></button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button onClick={() => handleDeleteSnippet(activeViewSnippet.id)} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-red-500/20 hover:text-red-300 transition-colors" title="Delete"><Trash2 size={15} /></button>
+                  <button onClick={() => { setEditSnippet(activeViewSnippet); setViewSnippet(null); }} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-neon-cyan/20 hover:text-neon-cyan transition-colors" title="Edit"><Edit2 size={15} /></button>
+                  <button onClick={() => handleToggleStar(activeViewSnippet.id)} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-amber-500/20 hover:text-amber-300 transition-colors" title="Star"><Star size={15} fill={activeViewSnippet.starred ? "#f59e0b" : "none"} color={activeViewSnippet.starred ? "#f59e0b" : "currentColor"} /></button>
+                  <div className="w-px h-5 bg-white/10 mx-1"></div>
+                  <button onClick={() => setViewSnippet(null)} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"><X size={17} /></button>
                 </div>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-6 scrollbar-thin flex flex-col gap-6">
-                <p className="text-sm text-white/90 leading-relaxed border-l-2 border-purple-500 pl-4">{activeViewSnippet.description}</p>
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-5">
+                {activeViewSnippet.description && (
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed border-l-2 border-neon-cyan pl-3.5">
+                    {activeViewSnippet.description}
+                  </p>
+                )}
                 
-                <div className="relative overflow-hidden rounded-xl border border-purple-500/30 bg-[#0a0314]/80 shadow-inner">
-                  <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-black/60">
-                    <span className="text-[10px] font-mono text-white/60 uppercase tracking-widest">Source Array</span>
+                {/* Code Highlighter */}
+                <div className="relative overflow-hidden rounded-xl border border-white/10 bg-[#07070A] shadow-inner">
+                  <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-black/50">
+                    <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Source Array</span>
                     <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/60 uppercase"><Activity size={12}/> {activeViewSnippet.views} Views</span>
-                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/60 uppercase"><Copy size={12}/> {activeViewSnippet.copies} Copies</span>
-                      <div className="w-px h-3 bg-white/20"></div>
-                      <button onClick={() => { navigator.clipboard.writeText(activeViewSnippet.code); }} className="text-[10px] font-bold flex items-center gap-1.5 text-purple-300 hover:text-purple-200"><Copy size={12}/> Copy Code</button>
+                      <span className="flex items-center gap-1 text-[10px] font-mono text-zinc-400"><Activity size={11} className="text-neon-magenta"/> {activeViewSnippet.views}</span>
+                      <span className="flex items-center gap-1 text-[10px] font-mono text-zinc-400"><Copy size={11} className="text-emerald-400"/> {activeViewSnippet.copies}</span>
+                      <div className="w-px h-3 bg-white/10"></div>
+                      <button 
+                        onClick={() => { 
+                          navigator.clipboard.writeText(activeViewSnippet.code); 
+                          handleMetricUpdate(activeViewSnippet.id, 'copies');
+                        }} 
+                        className="text-[10px] font-mono font-bold flex items-center gap-1 text-neon-cyan hover:underline cursor-pointer"
+                      >
+                        <Copy size={11}/> Copy Code
+                      </button>
                     </div>
                   </div>
-                  <SyntaxHighlighter language={activeViewSnippet.language.toLowerCase()} style={vscDarkPlus} customStyle={{ margin: 0, padding: '20px', fontSize: '13px', fontFamily: 'var(--font-mono)', background: 'transparent' }}>
+                  <SyntaxHighlighter 
+                    language={activeViewSnippet.language.toLowerCase()} 
+                    style={vscDarkPlus} 
+                    customStyle={{ margin: 0, padding: '16px', fontSize: '12px', fontFamily: 'var(--font-mono)', background: 'transparent' }}
+                  >
                     {activeViewSnippet.code}
                   </SyntaxHighlighter>
                 </div>
 
-                <div className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 p-5 mt-2">
+                {/* Diagnostics Section */}
+                <div className="rounded-xl border border-neon-cyan/30 bg-[#12121A]/80 p-4 sm:p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <Zap className={`h-5 w-5 text-cyan-400 ${viewSnippetAnalyzing ? 'animate-pulse' : ''}`} />
-                      <h3 className="text-sm font-black uppercase tracking-widest text-cyan-400">Cognitive Diagnostics</h3>
+                      <Zap className={`h-4 w-4 text-neon-cyan ${viewSnippetAnalyzing ? 'animate-pulse' : ''}`} />
+                      <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-neon-cyan">Cognitive Diagnostics</h3>
                     </div>
                     {!activeViewSnippet.xray && (
-                      <button onClick={runModalXRay} disabled={viewSnippetAnalyzing} className="flex items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-cyan-500/20 px-3 py-1.5 text-xs font-bold text-cyan-200 transition-all hover:bg-cyan-500/30 disabled:opacity-50">
+                      <button 
+                        onClick={runModalXRay} 
+                        disabled={viewSnippetAnalyzing} 
+                        className="flex items-center gap-1.5 rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-mono font-bold text-neon-cyan transition-all hover:bg-neon-cyan/20 disabled:opacity-50 cursor-pointer"
+                      >
                         <BrainCircuit className={`h-3.5 w-3.5 ${viewSnippetAnalyzing ? 'animate-spin' : ''}`} />
                         {viewSnippetAnalyzing ? 'Scanning...' : 'Run Diagnostics'}
                       </button>
@@ -818,44 +1056,44 @@ export default function Dashboard() {
                   </div>
 
                   {activeViewSnippet.xray ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                      <div className="flex flex-col gap-4">
-                        <div className="flex gap-4">
-                          <div className="flex-1 rounded-lg border border-cyan-500/30 bg-black/50 p-3 text-center shadow-inner">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-white/60">Time Complexity</div>
-                            <div className="mt-1 text-lg font-black text-cyan-300 font-mono">{activeViewSnippet.xray.timeComplexity}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex gap-3">
+                          <div className="flex-1 rounded-lg border border-neon-cyan/30 bg-black/40 p-2.5 text-center">
+                            <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">Time Complexity</div>
+                            <div className="mt-1 text-base font-black text-neon-cyan font-mono">{activeViewSnippet.xray.timeComplexity}</div>
                           </div>
-                          <div className="flex-1 rounded-lg border border-purple-500/30 bg-black/50 p-3 text-center shadow-inner">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-white/60">Space Complexity</div>
-                            <div className="mt-1 text-lg font-black text-purple-300 font-mono">{activeViewSnippet.xray.spaceComplexity}</div>
+                          <div className="flex-1 rounded-lg border border-white/10 bg-black/40 p-2.5 text-center">
+                            <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">Space Complexity</div>
+                            <div className="mt-1 text-base font-black text-white font-mono">{activeViewSnippet.xray.spaceComplexity}</div>
                           </div>
                         </div>
                         <div>
-                           <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-red-400">
-                             <AlertTriangle className="h-3.5 w-3.5 text-red-400" /> Edge Cases
-                           </div>
-                           <ul className="space-y-1.5">
-                             {activeViewSnippet.xray.vulnerabilities.map((item, idx) => (
-                               <li key={idx} className="text-xs leading-relaxed text-red-100 pl-3 relative before:absolute before:left-0 before:top-1.5 before:h-1 before:w-1 before:rounded-full before:bg-red-500">{item}</li>
-                             ))}
-                           </ul>
+                          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-red-400">
+                            <AlertTriangle className="h-3 w-3 text-red-400" /> Vulnerabilities & Bounds
+                          </div>
+                          <ul className="space-y-1">
+                            {activeViewSnippet.xray.vulnerabilities.map((item, idx) => (
+                              <li key={idx} className="text-[11px] leading-relaxed text-red-200/90 pl-3 relative before:absolute before:left-0 before:top-1.5 before:h-1 before:w-1 before:rounded-full before:bg-red-500">{item}</li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
                       <div>
-                         <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white/70">
-                           <Eye className="h-3.5 w-3.5 text-white/70" /> Execution Flow
-                         </div>
-                         <ul className="space-y-1.5">
-                           {activeViewSnippet.xray.explanation.map((item, idx) => (
-                             <li key={idx} className="text-xs leading-relaxed text-white/90 pl-3 relative before:absolute before:left-0 before:top-1.5 before:h-1 before:w-1 before:rounded-full before:bg-cyan-400">{item}</li>
-                           ))}
-                         </ul>
+                        <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-300">
+                          <Eye className="h-3 w-3 text-neon-cyan" /> Execution Walkthrough
+                        </div>
+                        <ul className="space-y-1">
+                          {activeViewSnippet.xray.explanation.map((item, idx) => (
+                            <li key={idx} className="text-[11px] leading-relaxed text-zinc-300 pl-3 relative before:absolute before:left-0 before:top-1.5 before:h-1 before:w-1 before:rounded-full before:bg-neon-cyan">{item}</li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   ) : (
-                    <div className="py-6 text-center text-xs text-cyan-400/60 flex flex-col items-center gap-2">
-                      <BrainCircuit size={32} className="opacity-30" />
-                      <p>Neural pathways unmapped. Run diagnostics to generate X-Ray.</p>
+                    <div className="py-4 text-center text-xs text-zinc-500 font-mono flex flex-col items-center gap-1.5">
+                      <BrainCircuit size={24} className="opacity-40 text-neon-cyan" />
+                      <p>Neural pathways unmapped. Run diagnostics to benchmark complexity.</p>
                     </div>
                   )}
                 </div>
@@ -868,23 +1106,23 @@ export default function Dashboard() {
       <SnippetFormModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddSnippet} />
       <SnippetEditModal snippet={editSnippet} open={editSnippet !== null} onClose={() => setEditSnippet(null)} onSave={handleSaveEdit} activeTier={activeTier} monthlyEditsLeft={monthlyEditsLeft} onUpgradeClick={() => { setEditSnippet(null); setActiveTab('settings'); }} />
 
-      {/* 1-Month Free Pro Trial Intercept Modal */}
+      {/* Free Pro Trial Modal */}
       <AnimatePresence>
         {showOfferPopup && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-md overflow-hidden rounded-3xl border border-neon-cyan/40 bg-[#12121A]/95 shadow-[0_40px_100px_rgba(0,240,255,0.2)] backdrop-blur-3xl text-center p-8">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-neon-cyan to-blue-600 shadow-[0_0_30px_rgba(0,240,255,0.4)]">
-                <Gift className="h-10 w-10 text-white" />
+          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 px-4 backdrop-blur-md">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-md overflow-hidden rounded-3xl border border-neon-cyan/40 bg-[#12121A]/95 shadow-[0_40px_100px_rgba(0,240,255,0.2)] backdrop-blur-3xl text-center p-6 sm:p-8">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-cyan to-blue-600 shadow-[0_0_25px_rgba(0,240,255,0.4)]">
+                <Gift className="h-8 w-8 text-white" />
               </div>
-              <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Welcome to Vantage AI</h2>
-              <p className="text-sm text-zinc-300 leading-relaxed mb-8">
-                As a new developer on the platform, you have unlocked a <strong className="text-neon-cyan">1-Month Free Trial</strong> of our Pro Plan. Access the Polyglot Morph Engine and Complexity X-Ray at zero cost.
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight mb-2">Welcome to Vantage AI</h2>
+              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed mb-6">
+                You have unlocked a <strong className="text-neon-cyan">1-Month Free Trial</strong> of our Pro Plan. Access the Polyglot Morph Engine and Complexity X-Ray at zero cost.
               </p>
-              <div className="space-y-3">
-                <button onClick={handleClaimOffer} className="w-full rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 py-3.5 text-sm font-semibold text-white uppercase tracking-wider hover:opacity-90 transition-all shadow-[0_0_20px_rgba(0,240,255,0.4)] active:scale-95 cursor-pointer">
+              <div className="space-y-2.5">
+                <button onClick={handleClaimOffer} className="w-full rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider hover:opacity-90 transition-all shadow-[0_0_20px_rgba(0,240,255,0.4)] active:scale-95 cursor-pointer">
                   Activate Free Pro Plan
                 </button>
-                <button onClick={() => { setShowOfferPopup(false); localStorage.removeItem('vault_pending_offer'); }} className="w-full rounded-xl border border-white/10 bg-white/5 py-3 text-xs font-bold text-white/50 uppercase hover:bg-white/10 hover:text-white transition-colors">
+                <button onClick={() => { setShowOfferPopup(false); localStorage.removeItem('vault_pending_offer'); }} className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-bold text-zinc-400 uppercase hover:bg-white/10 hover:text-white transition-colors">
                   Skip to Basic Tier
                 </button>
               </div>
@@ -893,26 +1131,34 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
+      {/* Pricing Upgrade Modal */}
       <AnimatePresence>
         {showPricingPopup && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-4xl overflow-hidden rounded-3xl border border-purple-500/50 bg-[#110726]/95 shadow-[0_40px_100px_rgba(0,0,0,0.8)] backdrop-blur-3xl">
-              <div className="border-b border-purple-500/30 px-8 py-6 text-center">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight">Initialize Configuration</h2>
-                <p className="mt-2 text-sm text-white/70">Select an operational tier to initialize your neural engine components.</p>
+          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 px-4 backdrop-blur-md overflow-y-auto py-8">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-[#0e0e14]/95 shadow-[0_40px_100px_rgba(0,0,0,0.9)] backdrop-blur-3xl">
+              <div className="border-b border-white/10 px-6 sm:px-8 py-5 text-center bg-[#12121A]/60">
+                <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">Initialize Configuration</h2>
+                <p className="mt-1 text-xs text-zinc-400">Select an operational tier to initialize your neural engine components.</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-purple-500/30">
+              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
                 {[
                   { name: "Free Trial", price: "$0", desc: "For individual developers.", btn: "Start Free", highlight: false },
                   { name: "Pro Plan Monthly", price: "$9", desc: "For professionals needing AI.", btn: "Start Pro", highlight: true },
                   { name: "Yearly Max Plan", price: "$89", desc: "Best value for power users.", btn: "Start Yearly", highlight: true }
                 ].map(tier => (
-                  <div key={tier.name} className={`flex flex-col p-8 transition-colors hover:bg-white/[0.05] ${tier.highlight ? 'bg-purple-500/10' : ''}`}>
-                    {tier.highlight && <span className="mb-3 w-max rounded-full bg-cyan-500/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300 border border-cyan-500/40">Most Popular</span>}
-                    <h3 className="text-lg font-bold text-white">{tier.name}</h3>
-                    <div className="mt-2 text-3xl font-black text-white">{tier.price}</div>
-                    <p className="mt-2 text-sm text-white/60 mb-8">{tier.desc}</p>
-                    <button onClick={() => handleSelectTier(tier.name as SubscriptionTier)} className={`mt-auto w-full rounded-xl px-4 py-3 text-sm font-bold transition-all active:scale-95 ${tier.highlight ? 'bg-gradient-to-r from-purple-500 to-cyan-400 text-black shadow-[0_4px_20px_rgba(124,58,237,0.6)]' : 'border border-purple-500/40 bg-purple-500/20 text-purple-200 hover:bg-purple-500/30'}`}>
+                  <div key={tier.name} className={`flex flex-col p-6 sm:p-8 transition-colors ${tier.highlight ? 'bg-neon-cyan/[0.03]' : ''}`}>
+                    {tier.highlight && <span className="mb-2 w-max rounded-full bg-neon-cyan/20 px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-neon-cyan border border-neon-cyan/30">Recommended</span>}
+                    <h3 className="text-base font-bold text-white">{tier.name}</h3>
+                    <div className="mt-2 text-2xl sm:text-3xl font-black text-white">{tier.price}</div>
+                    <p className="mt-1 text-xs text-zinc-400 mb-6">{tier.desc}</p>
+                    <button 
+                      onClick={() => handleSelectTier(tier.name as SubscriptionTier)} 
+                      className={`mt-auto w-full rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
+                        tier.highlight 
+                          ? 'bg-gradient-to-r from-neon-cyan to-blue-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:opacity-90' 
+                          : 'border border-white/10 bg-white/5 text-white hover:bg-white/10'
+                      }`}
+                    >
                       {tier.btn}
                     </button>
                   </div>
@@ -923,54 +1169,51 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
+      {/* Checkout Modal */}
       <AnimatePresence>
         {checkoutPlan && (
           <div className="fixed inset-0 z-[350] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-[#110726] border border-cyan-500/50 rounded-2xl p-6 shadow-2xl relative">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-[#0e0e14] border border-white/10 rounded-2xl p-6 shadow-2xl relative">
               {paymentSuccess ? (
-                <div className="py-12 text-center space-y-4 animate-scale-in">
-                  <div className="h-12 w-12 rounded-full bg-emerald-500/30 border border-emerald-500/50 flex items-center justify-center mx-auto text-emerald-300">
+                <div className="py-10 text-center space-y-3">
+                  <div className="h-12 w-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mx-auto text-emerald-300">
                     <ShieldCheck size={24}/>
                   </div>
-                  <h3 className="text-md font-bold text-white uppercase tracking-wider">Payment Processing Successful</h3>
-                  <p className="text-xs text-white/60">Securing configuration tier updates onto live workspace contexts...</p>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Payment Processing Successful</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Securing configuration updates to live workspace context...</p>
                 </div>
               ) : (
                 <form onSubmit={executePaymentPipeline} className="space-y-4">
                   <div className="flex items-center justify-between border-b border-white/10 pb-2">
                     <div>
-                      <h3 className="text-xs font-black uppercase tracking-wider text-white">Secure Encrypted Checkout</h3>
-                      <p className="text-[11px] text-purple-200 font-mono mt-0.5">Target Plan: {checkoutPlan}</p>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-white">Secure Encrypted Checkout</h3>
+                      <p className="text-[11px] text-neon-cyan font-mono mt-0.5">Target Plan: {checkoutPlan}</p>
                     </div>
-                    <button type="button" onClick={() => setCheckoutPlan(null)} className="text-white/60 hover:text-white p-1 rounded bg-white/10"><X size={14}/></button>
+                    <button type="button" onClick={() => setCheckoutPlan(null)} className="text-zinc-400 hover:text-white p-1 rounded bg-white/5"><X size={14}/></button>
                   </div>
 
                   {paymentError && <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-2.5 text-xs text-red-300">{paymentError}</div>}
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">Card Number</label>
+                    <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 mb-1">Card Number</label>
                     <div className="relative">
-                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
-                      <input type="text" required value={cardNumber} onChange={e => setCardNumber(e.target.value)} placeholder="4111 2222 3333 4444" className="w-full bg-black/50 border border-purple-500/30 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono" />
+                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                      <input type="text" required value={cardNumber} onChange={e => setCardNumber(e.target.value)} placeholder="4111 2222 3333 4444" className="w-full bg-black/60 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan font-mono" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">Expiration</label>
-                      <input type="text" required value={cardExpiry} onChange={e => setCardExpiry(e.target.value)} placeholder="MM/YY" className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 text-center font-mono" />
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 mb-1">Expiration</label>
+                      <input type="text" required value={cardExpiry} onChange={e => setCardExpiry(e.target.value)} placeholder="MM/YY" className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan text-center font-mono" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">CVC Code</label>
-                      <input type="password" required value={cardCvc} onChange={e => setCardCvc(e.target.value)} placeholder="•••" maxLength={4} className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 text-center font-mono" />
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 mb-1">CVC Code</label>
+                      <input type="password" required value={cardCvc} onChange={e => setCardCvc(e.target.value)} placeholder="•••" maxLength={4} className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan text-center font-mono" />
                     </div>
                   </div>
 
-                  <div className="bg-white/[0.05] border border-white/10 rounded-xl p-3 text-[10px] text-white/60 leading-relaxed mt-2">
-                    {"⚠️"} <span className="font-bold text-white/80">Strict Transaction Notice:</span> All digital allocation operations are final; no cancellation requests, rollbacks, or partial computational refunds are supported after core provisioning confirms execution.
-                  </div>
-
-                  <button type="submit" className="mt-2 w-full bg-gradient-to-r from-cyan-500 to-purple-500 text-black font-black py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-cyan-900/40 hover:opacity-90 transition-all">
+                  <button type="submit" className="mt-2 w-full bg-gradient-to-r from-neon-cyan to-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:opacity-90 transition-all cursor-pointer">
                     Authorize Charge
                   </button>
                 </form>

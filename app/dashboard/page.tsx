@@ -796,19 +796,19 @@ export default function Dashboard() {
         </div>
 
         {/* Mobile Swipe Carousel + Desktop Grid */}
-        <div className="flex md:grid md:grid-cols-3 gap-4 sm:gap-5 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex md:grid md:grid-cols-3 gap-4 sm:gap-5 overflow-x-auto pt-4 pb-4 md:pb-0 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
           {tiers.map((tier) => (
             <div 
               key={tier.name} 
               className={`shrink-0 w-[84vw] sm:w-[320px] md:w-auto snap-center relative flex flex-col rounded-2xl border ${
                 tier.highlight 
-                  ? 'border-neon-cyan/50 bg-[#12121A]/95 shadow-[0_10px_40px_rgba(0,240,255,0.15)]' 
+                  ? 'border-neon-cyan/50 bg-[#12121A]/95 shadow-[0_10px_40px_rgba(0,240,255,0.15)] ring-1 ring-neon-cyan/30' 
                   : 'border-white/10 bg-[#12121A]/60'
               } p-6 backdrop-blur-xl transition-all`}
             >
               {tier.highlight && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-neon-cyan to-blue-600 px-3 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-white shadow-md">
-                  Recommended
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 rounded-full bg-gradient-to-r from-neon-cyan to-blue-600 px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(0,240,255,0.5)] border border-white/20 whitespace-nowrap">
+                  RECOMMENDED
                 </div>
               )}
               <h3 className="text-base font-bold text-white">{tier.name}</h3>

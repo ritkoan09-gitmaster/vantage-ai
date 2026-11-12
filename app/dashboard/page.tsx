@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { JarvisMic } from '@/components/ui/JarvisMic';
+import InteractiveBackground from '@/components/InteractiveBackground';
 
 interface Tier {
   name: string;
@@ -914,17 +915,20 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-[100dvh] w-full bg-[#0a0f1d] overflow-hidden text-slate-100 selection:bg-indigo-500/30 relative">
-      {/* Dynamic Ambient Background Glow Orbs */}
-      <div className="fixed top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-[130px] pointer-events-none z-0" />
-      <div className="fixed bottom-[-10%] right-[10%] w-[600px] h-[600px] rounded-full bg-sky-500/10 blur-[150px] pointer-events-none z-0" />
-      <div className="fixed top-[40%] right-[25%] w-[400px] h-[400px] rounded-full bg-purple-600/10 blur-[120px] pointer-events-none z-0" />
+    <div className="flex h-[100dvh] w-full bg-black overflow-hidden text-slate-100 selection:bg-neon-cyan/30 relative">
+      {/* Moving Pure Black Interactive Particle Canvas */}
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-45">
+        <InteractiveBackground />
+      </div>
+
+      {/* Cybernetic Ambient Deep Vignette */}
+      <div className="fixed inset-0 bg-radial-vignette pointer-events-none z-0" style={{ background: 'radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.85) 100%)' }} />
 
       <Sidebar open={sideOpen} onClose={() => setSideOpen(false)} activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-y-auto overscroll-contain relative z-10 bg-transparent">
-        {/* Responsive Dashboard Header with Frosted Glass */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-[#0e1628]/75 px-4 sm:px-6 py-3.5 backdrop-blur-2xl shadow-sm">
+        {/* Responsive Dashboard Header with Ultra-Dark Frosted Glass */}
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-black/70 px-4 sm:px-6 py-3.5 backdrop-blur-3xl shadow-2xl">
           {/* Left: Mobile Menu + Search */}
           <div className="flex items-center gap-2.5 flex-1 max-w-md">
             <button 

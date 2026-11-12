@@ -123,14 +123,14 @@ export function Sidebar({ open, onClose, activeTab, setActiveTab }: SidebarProps
         {open && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-md lg:hidden" />
-            <motion.aside initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', bounce: 0, duration: 0.35 }} className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-slate-800 bg-[#111827] p-6 shadow-2xl lg:hidden">
-              <button onClick={onClose} className="absolute right-4 top-6 rounded-lg bg-slate-800/60 p-2 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white active:scale-95"><X className="h-5 w-5" /></button>
+            <motion.aside initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', bounce: 0, duration: 0.35 }} className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-black/90 p-6 shadow-2xl backdrop-blur-3xl lg:hidden">
+              <button onClick={onClose} className="absolute right-4 top-6 rounded-lg bg-white/5 p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white active:scale-95"><X className="h-5 w-5" /></button>
               <NavLinks />
             </motion.aside>
           </>
         )}
       </AnimatePresence>
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-800 bg-[#111827] p-6 backdrop-blur-2xl lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-white/10 bg-black/75 p-6 backdrop-blur-3xl lg:flex z-20">
         <NavLinks />
       </aside>
     </>

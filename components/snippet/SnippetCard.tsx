@@ -180,19 +180,19 @@ export function SnippetCard({ snippet, isTrending, onToggleStar, onEdit, onDelet
         
         {/* FRONT SIDE - Ultra-Modern Glassmorphism Card */}
         <div 
-          className={`absolute inset-0 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/80 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300 [backface-visibility:hidden] ${accent.border}`}
+          className={`absolute inset-0 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0d131f]/80 p-6 shadow-[0_12px_40px_rgba(0,0,0,0.65)] backdrop-blur-2xl transition-all duration-300 [backface-visibility:hidden] ${accent.border}`}
           style={{
             boxShadow: isHovered 
-              ? `0 20px 50px -10px ${accent.glow}, 0 0 0 1px rgba(255, 255, 255, 0.15)` 
-              : '0 10px 30px -5px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
+              ? `0 25px 60px -10px ${accent.glow}, 0 0 30px -5px ${accent.glow}, 0 0 0 1px rgba(255, 255, 255, 0.2)` 
+              : '0 10px 30px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
           }}
         >
           {/* Dynamic Top Ambient Glow Gradient */}
           <div 
-            className={`absolute -top-24 -right-24 h-56 w-56 rounded-full bg-gradient-to-br ${accent.gradient} blur-3xl pointer-events-none transition-opacity duration-500 ${isHovered ? 'opacity-90 scale-125' : 'opacity-40'}`} 
+            className={`absolute -top-24 -right-24 h-60 w-60 rounded-full bg-gradient-to-br ${accent.gradient} blur-3xl pointer-events-none transition-all duration-500 ${isHovered ? 'opacity-100 scale-150' : 'opacity-35'}`} 
           />
           <div 
-            className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" 
+            className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/35 to-transparent pointer-events-none" 
           />
 
           {/* Header */}

@@ -452,56 +452,65 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Modern Analytics Metric Cards */}
-      <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Metric 1 */}
-        <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:border-slate-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">Vault Capacity</span>
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-              <LayoutGrid size={18}/>
+      {/* Ultra-Modern Glassmorphism Metric Cards */}
+      <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {/* Metric 1 - Indigo Glow */}
+        <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-[0_20px_40px_rgba(99,102,241,0.25)]">
+          <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
+          
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Vault Capacity</span>
+            <div className="p-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.25)]">
+              <LayoutGrid size={20}/>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">{totalSnippetsCount}</span>
-            <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">Active</span>
+          <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{totalSnippetsCount}</span>
+            <span className="text-xs font-bold text-indigo-300 bg-indigo-500/20 border border-indigo-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
           </div>
-          <p className="mt-2 text-xs text-slate-400">
-            {snippets.filter(s => s.starred).length} snippets starred in quick access
+          <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
+            <span className="text-indigo-400 font-bold">{snippets.filter(s => s.starred).length}</span> starred in quick access
           </p>
         </div>
 
-        {/* Metric 2 */}
-        <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:border-slate-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">Total Deployments</span>
-            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400">
-              <Copy size={18}/>
+        {/* Metric 2 - Sky Blue Glow */}
+        <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/50 hover:shadow-[0_20px_40px_rgba(56,189,248,0.25)]">
+          <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-sky-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent pointer-events-none" />
+          
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Deployments</span>
+            <div className="p-3 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-300 shadow-[0_0_15px_rgba(56,189,248,0.25)]">
+              <Copy size={20}/>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">{globalCopiesCount}</span>
-            <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">+49%</span>
+          <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{globalCopiesCount}</span>
+            <span className="text-xs font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">+49%</span>
           </div>
-          <p className="mt-2 text-xs text-slate-400">
-            100% verified copy and retrieval rate
+          <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
+            <span className="text-emerald-400 font-bold">100%</span> verified edge delivery
           </p>
         </div>
 
-        {/* Metric 3 */}
-        <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:border-slate-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">Diagnostic Scans</span>
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-              <Activity size={18}/>
+        {/* Metric 3 - Fuchsia / Purple Glow */}
+        <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_20px_40px_rgba(168,85,247,0.25)]">
+          <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-purple-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent pointer-events-none" />
+          
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Diagnostic Scans</span>
+            <div className="p-3 rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
+              <Activity size={20}/>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">{totalViewsCount}</span>
-            <span className="text-xs font-medium text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-1.5 py-0.5 rounded">Scanned</span>
+          <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{totalViewsCount}</span>
+            <span className="text-xs font-bold text-purple-300 bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">AI Synced</span>
           </div>
-          <p className="mt-2 text-xs text-slate-400">
-            {snippets.filter(s => s.xray).length} units profiled with Big-O complexity
+          <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
+            <span className="text-purple-400 font-bold">{snippets.filter(s => s.xray).length}</span> units mapped with Big-O X-Ray
           </p>
         </div>
       </div>
@@ -905,12 +914,17 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-[100dvh] w-full bg-[#0f172a] overflow-hidden text-slate-100 selection:bg-indigo-500/30">
+    <div className="flex h-[100dvh] w-full bg-[#0a0f1d] overflow-hidden text-slate-100 selection:bg-indigo-500/30 relative">
+      {/* Dynamic Ambient Background Glow Orbs */}
+      <div className="fixed top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-[130px] pointer-events-none z-0" />
+      <div className="fixed bottom-[-10%] right-[10%] w-[600px] h-[600px] rounded-full bg-sky-500/10 blur-[150px] pointer-events-none z-0" />
+      <div className="fixed top-[40%] right-[25%] w-[400px] h-[400px] rounded-full bg-purple-600/10 blur-[120px] pointer-events-none z-0" />
+
       <Sidebar open={sideOpen} onClose={() => setSideOpen(false)} activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      <main className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-y-auto overscroll-contain relative z-10 bg-[#0f172a]">
-        {/* Responsive Dashboard Header */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-800 bg-[#111827]/90 px-4 sm:px-6 py-3 backdrop-blur-2xl">
+      <main className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-y-auto overscroll-contain relative z-10 bg-transparent">
+        {/* Responsive Dashboard Header with Frosted Glass */}
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-[#0e1628]/75 px-4 sm:px-6 py-3.5 backdrop-blur-2xl shadow-sm">
           {/* Left: Mobile Menu + Search */}
           <div className="flex items-center gap-2.5 flex-1 max-w-md">
             <button 

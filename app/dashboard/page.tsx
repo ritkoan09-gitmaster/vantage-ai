@@ -355,6 +355,19 @@ export default function Dashboard() {
   const globalCopiesCount = snippets.reduce((acc, curr) => acc + (curr.copies || 0), 0);
   const totalViewsCount = snippets.reduce((acc, curr) => acc + (curr.views || 0), 0);
 
+  // Derived language groups for language-wise mobile carousel view (newest snippet's language appears first!)
+  const languageGroups: { language: string; snippets: Snippet[] }[] = [];
+  const seenLangs = new Set<string>();
+  for (const s of visibleSnippets) {
+    if (!seenLangs.has(s.language)) {
+      seenLangs.add(s.language);
+      languageGroups.push({
+        language: s.language,
+        snippets: visibleSnippets.filter(item => item.language === s.language)
+      });
+    }
+  }
+
   const handleMetricUpdate = async (id: string, type: 'copies' | 'views') => {
     syncSnippets(prev => prev.map(s => {
       if (s.id === id) {
@@ -492,22 +505,6 @@ export default function Dashboard() {
   };
 
   if (!isAuthenticated) return null;
-
-  // Language groups for language-wise mobile carousel view (newest snippet's language appears first!)
-  const languageGroups = useMemo(() => {
-    const groups: { language: string; snippets: Snippet[] }[] = [];
-    const seen = new Set<string>();
-    for (const s of visibleSnippets) {
-      if (!seen.has(s.language)) {
-        seen.add(s.language);
-        groups.push({
-          language: s.language,
-          snippets: visibleSnippets.filter(item => item.language === s.language)
-        });
-      }
-    }
-    return groups;
-  }, [visibleSnippets]);
 
   // TAB 1: SNIPPETS VIEW
   const renderSnippetsView = () => (

@@ -26,4 +26,6 @@ export interface Snippet {
   views: number;
   tags: string[];
   xray?: XRayData;
+  createdAt?: string;
+  updatedAt?: string;
 }

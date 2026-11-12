@@ -50,6 +50,7 @@ export function SnippetFormModal({ open, onClose, onAdd }: { open: boolean; onCl
       starred: false,
       copies: 0,
       views: 0,
+      createdAt: new Date().toISOString(),
     });
     onClose();
     setForm({ title: "", language: "TypeScript", code: "", tags: "", description: "" });

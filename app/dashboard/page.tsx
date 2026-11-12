@@ -245,7 +245,8 @@ export default function Dashboard() {
         if (data.success && data.snippets) {
           const formattedSnippets = data.snippets.map((s: any) => ({
             ...s,
-            id: s.snippetId 
+            id: s.snippetId,
+            createdAt: s.createdAt || new Date().toISOString()
           }));
           setSnippets(formattedSnippets);
         }
@@ -302,7 +303,13 @@ export default function Dashboard() {
       if (activeFilter !== "All") return s.language === activeFilter;
       return true;
     })
-    .sort((a, b) => sortBy === 'deployed' ? (b.copies || 0) - (a.copies || 0) : b.id.localeCompare(a.id));
+    .sort((a, b) => {
+      if (sortBy === 'deployed') return (b.copies || 0) - (a.copies || 0);
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (timeA && timeB) return timeB - timeA;
+      return 0;
+    });
 
   const maxCopies = Math.max(...snippets.map(s => s.copies || 0), 0);
   const maxViews = Math.max(...snippets.map(s => s.views || 0), 0);
@@ -340,11 +347,16 @@ export default function Dashboard() {
   };
 
   const handleToggleStar = async (id: string) => {
-    const updated = snippets.map(s => s.id === id ? { ...s, starred: !s.starred } : s);
-    setSnippets(updated);
+    let snippetToUpdate: Snippet | undefined;
+    setSnippets(prev => prev.map(s => {
+      if (s.id === id) {
+        snippetToUpdate = { ...s, starred: !s.starred };
+        return snippetToUpdate;
+      }
+      return s;
+    }));
 
     const username = localStorage.getItem('vault_username');
-    const snippetToUpdate = updated.find(s => s.id === id);
     if (snippetToUpdate && username) {
       try {
         await fetch('/api/snippets', {
@@ -357,38 +369,53 @@ export default function Dashboard() {
   };
 
   const handleAddSnippet = async (snippet: Snippet) => {
+    const snippetWithTimestamp: Snippet = {
+      ...snippet,
+      createdAt: snippet.createdAt || new Date().toISOString()
+    };
+
+    // Optimistically update UI immediately so user sees new snippet instantly
+    setSnippets(prev => [snippetWithTimestamp, ...prev]);
+
+    const newNotif = {
+      id: Date.now().toString(),
+      title: 'Snippet Added',
+      message: `Saved "${snippet.title}" to vault.`,
+      color: 'bg-neon-cyan'
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    setUnreadCount(prev => prev + 1);
+
     const username = localStorage.getItem('vault_username');
+    if (!username) return;
+
     try {
       const res = await fetch('/api/snippets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, snippet })
+        body: JSON.stringify({ username, snippet: snippetWithTimestamp })
       });
       const data = await res.json();
       if (data.success) {
-        setSnippets([{ ...snippet, id: data.snippet.snippetId || snippet.id }, ...snippets]);
-        
-        const newNotif = {
-          id: Date.now().toString(),
-          title: 'Snippet Added',
-          message: `Saved "${snippet.title}" to vault.`,
-          color: 'bg-neon-cyan'
-        };
-        setNotifications(prev => [newNotif, ...prev]);
-        setUnreadCount(prev => prev + 1);
+        const serverSnippet = data.newSnippet || data.snippet;
+        const serverSnippetId = serverSnippet?.snippetId;
+        if (serverSnippetId && serverSnippetId !== snippet.id) {
+          setSnippets(prev => prev.map(s => s.id === snippet.id ? { ...s, id: serverSnippetId } : s));
+        }
       }
     } catch (error) {
-      console.error("Failed to create snippet", error);
+      console.error("Failed to sync created snippet to database", error);
     }
   };
 
   const handleDeleteSnippet = async (id: string) => {
-    setSnippets(snippets.filter(s => s.id !== id));
+    setSnippets(prev => prev.filter(s => s.id !== id));
     if (viewSnippet?.id === id) {
       setViewSnippet(null);
     }
 
     const username = localStorage.getItem('vault_username');
+    if (!username) return;
     try {
       await fetch('/api/snippets', {
         method: 'DELETE',
@@ -399,11 +426,12 @@ export default function Dashboard() {
   };
 
   const handleSaveEdit = async (updated: Snippet) => {
-    setSnippets(snippets.map(s => s.id === updated.id ? updated : s));
+    setSnippets(prev => prev.map(s => s.id === updated.id ? updated : s));
     if (activeTier === 'Pro Plan Monthly') setMonthlyEditsLeft(prev => Math.max(0, prev - 1));
     setEditSnippet(null);
     
     const username = localStorage.getItem('vault_username');
+    if (!username) return;
     try {
       await fetch('/api/snippets', {
         method: 'PUT',
@@ -963,7 +991,8 @@ export default function Dashboard() {
                   description: newAiSnippet.description || "",
                   starred: false,
                   copies: 0,
-                  views: 0
+                  views: 0,
+                  createdAt: new Date().toISOString()
                 });
               }} />
             </div>

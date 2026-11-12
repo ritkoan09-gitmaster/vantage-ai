@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       xray: snippet.xray || null
     });
 
-    return NextResponse.json({ success: true, newSnippet });
+    return NextResponse.json({ success: true, newSnippet, snippet: newSnippet });
   } catch (error) {
     console.error("🔴 POST SNIPPET ERROR:", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

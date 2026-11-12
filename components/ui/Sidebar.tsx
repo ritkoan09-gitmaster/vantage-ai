@@ -52,7 +52,7 @@ export function Sidebar({ open, onClose, activeTab, setActiveTab }: SidebarProps
           }`}
         >
           <TerminalSquare className={`h-4 w-4 transition-colors ${activeTab === 'snippets' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} /> 
-          All Snippets
+          Code Vault
         </button>
         <button 
           onClick={() => handleTabClick('languages')} 
@@ -63,7 +63,7 @@ export function Sidebar({ open, onClose, activeTab, setActiveTab }: SidebarProps
           }`}
         >
           <Code2 className={`h-4 w-4 transition-colors ${activeTab === 'languages' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} /> 
-          Polyglot Matrix
+          Language Analytics
         </button>
         <button 
           onClick={() => handleTabClick('integrations')} 
@@ -74,7 +74,7 @@ export function Sidebar({ open, onClose, activeTab, setActiveTab }: SidebarProps
           }`}
         >
           <Box className={`h-4 w-4 transition-colors ${activeTab === 'integrations' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} /> 
-          System Integrations
+          Tool Integrations
         </button>
         <button 
           onClick={() => handleTabClick('settings')} 
@@ -85,7 +85,7 @@ export function Sidebar({ open, onClose, activeTab, setActiveTab }: SidebarProps
           }`}
         >
           <Settings className={`h-4 w-4 transition-colors ${activeTab === 'settings' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} /> 
-          Settings & Billing
+          Account & Plans
         </button>
       </nav>
 
@@ -100,7 +100,7 @@ export function Sidebar({ open, onClose, activeTab, setActiveTab }: SidebarProps
           }`}
         >
           <BookOpen className={`h-4 w-4 transition-colors ${activeTab === 'about' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} /> 
-          Documentation
+          Docs & Guides
         </button>
         
         <div className="px-3 pt-3 border-t border-slate-800/80 text-center">

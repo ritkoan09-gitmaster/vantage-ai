@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const LANG_ACCENTS: Record<string, { color: string; gradient: string; border: string; glow: string }> = {
+export const LANG_ACCENTS: Record<string, { color: string; gradient: string; border: string; glow: string }> = {
   TypeScript: { 
     color: '#38bdf8', 
     gradient: 'from-sky-500/20 via-indigo-500/10 to-transparent',

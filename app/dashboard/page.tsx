@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation'; 
 import { Sidebar, TabType } from '@/components/ui/Sidebar';
-import { SnippetCard } from '@/components/snippet/SnippetCard';
+import { SnippetCard, LANG_ACCENTS } from '@/components/snippet/SnippetCard';
 import { CommandPalette } from '@/components/ui/CommandPalette';
 import { SnippetFormModal } from '@/components/snippet/SnippetFormModal';
 import { SnippetEditModal } from '@/components/snippet/SnippetEditModal';
@@ -493,6 +493,22 @@ export default function Dashboard() {
 
   if (!isAuthenticated) return null;
 
+  // Language groups for language-wise mobile carousel view (newest snippet's language appears first!)
+  const languageGroups = useMemo(() => {
+    const groups: { language: string; snippets: Snippet[] }[] = [];
+    const seen = new Set<string>();
+    for (const s of visibleSnippets) {
+      if (!seen.has(s.language)) {
+        seen.add(s.language);
+        groups.push({
+          language: s.language,
+          snippets: visibleSnippets.filter(item => item.language === s.language)
+        });
+      }
+    }
+    return groups;
+  }, [visibleSnippets]);
+
   // TAB 1: SNIPPETS VIEW
   const renderSnippetsView = () => (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex-1 w-full">
@@ -515,66 +531,73 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Ultra-Modern Glassmorphism Metric Cards */}
-      <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {/* Metric 1 - Indigo Glow */}
-        <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-[0_20px_40px_rgba(99,102,241,0.25)]">
-          <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
-          
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Vault Capacity</span>
-            <div className="p-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.25)]">
-              <LayoutGrid size={20}/>
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
-            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{totalSnippetsCount}</span>
-            <span className="text-xs font-bold text-indigo-300 bg-indigo-500/20 border border-indigo-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
-          </div>
-          <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
-            <span className="text-indigo-400 font-bold">{snippets.filter(s => s.starred).length}</span> starred in quick access
-          </p>
+      {/* Ultra-Modern Glassmorphism Metric Cards: Swipeable Carousel on Mobile, Grid on sm+ */}
+      <div className="mb-8">
+        <div className="flex sm:hidden items-center justify-between text-[11px] text-slate-400 mb-2.5 px-1 font-mono">
+          <span className="flex items-center gap-1.5"><Sparkles size={12} className="text-indigo-400"/> System Telemetry</span>
+          <span className="text-indigo-400">Swipe cards →</span>
         </div>
 
-        {/* Metric 2 - Sky Blue Glow */}
-        <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/50 hover:shadow-[0_20px_40px_rgba(56,189,248,0.25)]">
-          <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-sky-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent pointer-events-none" />
-          
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Deployments</span>
-            <div className="p-3 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-300 shadow-[0_0_15px_rgba(56,189,248,0.25)]">
-              <Copy size={20}/>
+        <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-5 overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0">
+          {/* Metric 1 - Indigo Glow */}
+          <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-[0_20px_40px_rgba(99,102,241,0.25)]">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
+            
+            <div className="flex items-center justify-between relative z-10">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Vault Capacity</span>
+              <div className="p-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.25)]">
+                <LayoutGrid size={20}/>
+              </div>
             </div>
+            <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
+              <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{totalSnippetsCount}</span>
+              <span className="text-xs font-bold text-indigo-300 bg-indigo-500/20 border border-indigo-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
+            </div>
+            <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
+              <span className="text-indigo-400 font-bold">{snippets.filter(s => s.starred).length}</span> starred in quick access
+            </p>
           </div>
-          <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
-            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{globalCopiesCount}</span>
-            <span className="text-xs font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">+49%</span>
-          </div>
-          <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
-            <span className="text-emerald-400 font-bold">100%</span> verified edge delivery
-          </p>
-        </div>
 
-        {/* Metric 3 - Fuchsia / Purple Glow */}
-        <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_20px_40px_rgba(168,85,247,0.25)]">
-          <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-purple-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent pointer-events-none" />
-          
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Diagnostic Scans</span>
-            <div className="p-3 rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
-              <Activity size={20}/>
+          {/* Metric 2 - Sky Blue Glow */}
+          <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/50 hover:shadow-[0_20px_40px_rgba(56,189,248,0.25)]">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-sky-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent pointer-events-none" />
+            
+            <div className="flex items-center justify-between relative z-10">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Deployments</span>
+              <div className="p-3 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-300 shadow-[0_0_15px_rgba(56,189,248,0.25)]">
+                <Copy size={20}/>
+              </div>
             </div>
+            <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
+              <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{globalCopiesCount}</span>
+              <span className="text-xs font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">+49%</span>
+            </div>
+            <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
+              <span className="text-emerald-400 font-bold">100%</span> verified edge delivery
+            </p>
           </div>
-          <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
-            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{totalViewsCount}</span>
-            <span className="text-xs font-bold text-purple-300 bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">AI Synced</span>
+
+          {/* Metric 3 - Fuchsia / Purple Glow */}
+          <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_20px_40px_rgba(168,85,247,0.25)]">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-purple-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent pointer-events-none" />
+            
+            <div className="flex items-center justify-between relative z-10">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Diagnostic Scans</span>
+              <div className="p-3 rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
+                <Activity size={20}/>
+              </div>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
+              <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{totalViewsCount}</span>
+              <span className="text-xs font-bold text-purple-300 bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">AI Synced</span>
+            </div>
+            <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
+              <span className="text-purple-400 font-bold">{snippets.filter(s => s.xray).length}</span> units mapped with Big-O X-Ray
+            </p>
           </div>
-          <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
-            <span className="text-purple-400 font-bold">{snippets.filter(s => s.xray).length}</span> units mapped with Big-O X-Ray
-          </p>
         </div>
       </div>
 
@@ -661,39 +684,89 @@ export default function Dashboard() {
           </button>
         </div>
       ) : (
-        <motion.div layout className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          <AnimatePresence mode="popLayout">
-            {visibleSnippets.map((s, i) => {
-              const isTrending = (maxCopies > 0 && s.copies === maxCopies) || (maxViews > 0 && s.views === maxViews);
-
+        <>
+          {/* MOBILE VIEW: Language-Wise Swipeable Carousels */}
+          <div className="block sm:hidden space-y-6">
+            {languageGroups.map((group: { language: string; snippets: Snippet[] }) => {
+              const accent = LANG_ACCENTS[group.language] || { color: '#818cf8', gradient: '', border: '', glow: 'rgba(99,102,241,0.2)' };
               return (
-                <motion.div 
-                  layout 
-                  initial={{ opacity: 0, scale: 0.95, y: 15 }} 
-                  animate={{ opacity: 1, scale: 1, y: 0 }} 
-                  exit={{ opacity: 0, scale: 0.95 }} 
-                  transition={{ duration: 0.25, delay: i * 0.04 }} 
-                  key={s.id} 
-                  className="h-full"
-                >
-                  <SnippetCard 
-                    snippet={s} 
-                    isTrending={isTrending}
-                    onToggleStar={handleToggleStar} 
-                    onEdit={setEditSnippet} 
-                    onDelete={handleDeleteSnippet} 
-                    onUpdateMetric={handleMetricUpdate}
-                  />
-                </motion.div>
+                <div key={group.language} className="relative">
+                  {/* Language Section Header */}
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <div className="flex items-center gap-2">
+                      <span 
+                        className="h-2.5 w-2.5 rounded-full animate-pulse" 
+                        style={{ 
+                          backgroundColor: accent.color,
+                          boxShadow: `0 0 10px ${accent.color}` 
+                        }} 
+                      />
+                      <h3 className="text-sm font-bold text-white tracking-wide">{group.language} Snippets</h3>
+                      <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60">
+                        {group.snippets.length}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-indigo-400">Swipe →</span>
+                  </div>
+
+                  {/* Horizontal Swipeable Carousel for this Language */}
+                  <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-4 px-4 pb-2">
+                    {group.snippets.map((s: Snippet) => {
+                      const isTrending = (maxCopies > 0 && s.copies === maxCopies) || (maxViews > 0 && s.views === maxViews);
+                      return (
+                        <div key={s.id} className="min-w-[85vw] snap-center h-full">
+                          <SnippetCard 
+                            snippet={s} 
+                            isTrending={isTrending}
+                            onToggleStar={handleToggleStar} 
+                            onEdit={setEditSnippet} 
+                            onDelete={handleDeleteSnippet} 
+                            onUpdateMetric={handleMetricUpdate}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
-          </AnimatePresence>
-        </motion.div>
+          </div>
+
+          {/* DESKTOP VIEW: Multi-Column Responsive Grid */}
+          <motion.div layout className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <AnimatePresence mode="popLayout">
+              {visibleSnippets.map((s, i) => {
+                const isTrending = (maxCopies > 0 && s.copies === maxCopies) || (maxViews > 0 && s.views === maxViews);
+
+                return (
+                  <motion.div 
+                    layout 
+                    initial={{ opacity: 0, scale: 0.95, y: 15 }} 
+                    animate={{ opacity: 1, scale: 1, y: 0 }} 
+                    exit={{ opacity: 0, scale: 0.95 }} 
+                    transition={{ duration: 0.25, delay: i * 0.04 }} 
+                    key={s.id} 
+                    className="h-full"
+                  >
+                    <SnippetCard 
+                      snippet={s} 
+                      isTrending={isTrending}
+                      onToggleStar={handleToggleStar} 
+                      onEdit={setEditSnippet} 
+                      onDelete={handleDeleteSnippet} 
+                      onUpdateMetric={handleMetricUpdate}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
+        </>
       )}
     </motion.div>
   );
 
-  // TAB 2: LANGUAGES MATRIX
+  // TAB 2: LANGUAGE ANALYTICS
   const renderLanguagesView = () => {
     const langStats = snippets.reduce((acc, curr) => {
       if (!acc[curr.language]) acc[curr.language] = { count: 0, lines: 0, copies: 0 };
@@ -706,40 +779,68 @@ export default function Dashboard() {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 w-full">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">Polyglot Matrix</h1>
-          <p className="mt-1 text-xs sm:text-sm text-zinc-400">Deep telemetry of language usage, lines of code, and deployment frequency.</p>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400">Code Telemetry • Analytics</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Language Analytics</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">Deep telemetry of language distribution, lines of code, and deployment frequency.</p>
         </div>
 
         {Object.keys(langStats).length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#12121A]/60 p-12 text-center text-zinc-500 font-mono text-xs">
-            Ingest code sequences into the vault to generate matrix telemetry.
+          <div className="rounded-2xl border border-slate-800 bg-[#161f30]/60 p-12 text-center text-slate-400 font-mono text-xs">
+            Ingest code sequences into the vault to generate language analytics.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {Object.entries(langStats).map(([lang, stats]) => (
-              <div key={lang} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl transition-all hover:border-neon-cyan/50 hover:shadow-[0_10px_30px_rgba(0,240,255,0.15)]">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan group-hover:bg-neon-cyan/20 transition-colors">
-                  <Code2 className="h-6 w-6" />
-                </div>
-                <h3 className="text-xl font-bold text-white">{lang}</h3>
-                <p className="mt-1 text-xs text-zinc-400 font-mono">{stats.count} active snippet{stats.count !== 1 && 's'}</p>
-                
-                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">Volume</span>
-                    <span className="text-sm font-bold text-white font-mono">{stats.lines} lines</span>
+            {Object.entries(langStats).map(([lang, stats]) => {
+              const accent = LANG_ACCENTS[lang] || { color: '#818cf8', gradient: '', border: '', glow: 'rgba(99,102,241,0.2)' };
+              return (
+                <div key={lang} className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-[0_20px_40px_rgba(99,102,241,0.2)]">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
+                  
+                  <div className="mb-4 flex items-center justify-between">
+                    <div 
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl border transition-colors shadow-inner"
+                      style={{ 
+                        backgroundColor: `${accent.color}15`, 
+                        borderColor: `${accent.color}40`, 
+                        color: accent.color 
+                      }}
+                    >
+                      <Code2 className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-slate-700 bg-slate-800/80 text-slate-300">
+                      {stats.count} snippet{stats.count !== 1 && 's'}
+                    </span>
                   </div>
-                  <div className="flex flex-col text-right">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">Deployment</span>
-                    <span className="text-sm font-bold text-emerald-400 font-mono">{stats.copies} copies</span>
-                  </div>
-                </div>
 
-                <div className="mt-4 h-1.5 w-full rounded-full bg-black/60 overflow-hidden border border-white/5">
-                  <div className="h-full rounded-full bg-gradient-to-r from-neon-cyan to-blue-600" style={{ width: `${Math.min((stats.count / (snippets.length || 1)) * 100 * 2, 100)}%` }} />
+                  <h3 className="text-xl font-bold text-white tracking-tight">{lang}</h3>
+                  <p className="mt-1 text-xs text-slate-400 font-mono">Active in developer vault</p>
+                  
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">Volume</span>
+                      <span className="text-sm font-bold text-slate-200 font-mono">{stats.lines} lines</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">Deployments</span>
+                      <span className="text-sm font-bold text-emerald-400 font-mono">{stats.copies} copies</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 h-1.5 w-full rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+                    <div 
+                      className="h-full rounded-full transition-all duration-500" 
+                      style={{ 
+                        backgroundColor: accent.color,
+                        width: `${Math.min((stats.count / (snippets.length || 1)) * 100 * 2, 100)}%` 
+                      }} 
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </motion.div>
@@ -941,56 +1042,73 @@ export default function Dashboard() {
   const renderAboutView = () => (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-4xl mx-auto w-full pb-10">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">Documentation & Manual</h1>
-        <p className="mt-1 text-xs sm:text-sm text-zinc-400">Complete architectural guide to Vantage AI workflows and capabilities.</p>
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400">Developer Architecture • Manual</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Docs & Guides</h1>
+        <p className="mt-1 text-xs sm:text-sm text-slate-400">Complete architectural guide to Vantage AI workflows, neural engines, and capabilities.</p>
       </div>
 
-      <div className="flex flex-col gap-5">
-        <div className="rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 sm:p-8 backdrop-blur-xl">
-          <h2 className="text-base sm:text-lg font-bold text-white mb-3 flex items-center gap-2">
-            <Server className="text-neon-cyan" size={18} /> How Vantage AI Operates
+      <div className="flex flex-col gap-6">
+        {/* Core Overview Card */}
+        <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 sm:p-8 backdrop-blur-2xl shadow-[0_15px_35px_rgba(0,0,0,0.35)] transition-all duration-300 hover:border-indigo-500/50 hover:shadow-[0_20px_40px_rgba(99,102,241,0.2)]">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
+          
+          <h2 className="text-base sm:text-lg font-bold text-white mb-3 flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+              <Server size={18} />
+            </div>
+            How Vantage AI Operates
           </h2>
-          <p className="text-zinc-300 leading-relaxed text-xs sm:text-sm mb-4">
-            Vantage AI is a distributed cognitive workspace for code components. Instead of manually bookmarking scripts, paste raw code sequences into the vault. The Gemini Neural Engine automatically isolates syntax, determines language constraints, derives semantic metadata, and builds searchable vector tags.
+          <p className="text-slate-300 leading-relaxed text-xs sm:text-sm mb-6">
+            Vantage AI is a distributed cognitive workspace for code components. Instead of manually bookmarking scripts, paste raw code sequences into your vault. The Gemini Neural Engine automatically isolates syntax, determines language constraints, derives semantic metadata, and builds searchable vector tags.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
-            <div className="bg-black/50 p-4 rounded-xl border border-white/5">
-              <span className="text-neon-cyan font-mono font-black text-base block mb-1">01. INGEST</span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="group/step relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-[#0f172a]/80 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/60 hover:shadow-[0_10px_25px_rgba(99,102,241,0.2)]">
+              <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-indigo-500/10 blur-xl pointer-events-none" />
+              <span className="text-indigo-400 font-mono font-black text-sm block mb-1 tracking-wider">01. INGEST</span>
               <h4 className="font-bold text-white text-xs mb-1">Input Code</h4>
-              <p className="text-[11px] text-zinc-400 leading-normal">Paste raw snippets or record voice instructions via Jarvis.</p>
+              <p className="text-[11px] text-slate-400 leading-normal">Paste raw snippets or record voice instructions via Jarvis.</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-white/5">
-              <span className="text-neon-magenta font-mono font-black text-base block mb-1">02. ANALYZE</span>
+            <div className="group/step relative overflow-hidden rounded-2xl border border-purple-500/30 bg-[#0f172a]/80 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/60 hover:shadow-[0_10px_25px_rgba(168,85,247,0.2)]">
+              <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-purple-500/10 blur-xl pointer-events-none" />
+              <span className="text-purple-400 font-mono font-black text-sm block mb-1 tracking-wider">02. ANALYZE</span>
               <h4 className="font-bold text-white text-xs mb-1">AI Metadata</h4>
-              <p className="text-[11px] text-zinc-400 leading-normal">Complexity scanner maps Big-O bounds and potential bugs.</p>
+              <p className="text-[11px] text-slate-400 leading-normal">Complexity scanner maps Big-O bounds and potential bugs.</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-white/5">
-              <span className="text-emerald-400 font-mono font-black text-base block mb-1">03. SHIP</span>
+            <div className="group/step relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-[#0f172a]/80 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/60 hover:shadow-[0_10px_25px_rgba(52,211,153,0.2)]">
+              <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-emerald-500/10 blur-xl pointer-events-none" />
+              <span className="text-emerald-400 font-mono font-black text-sm block mb-1 tracking-wider">03. SHIP</span>
               <h4 className="font-bold text-white text-xs mb-1">Zero-Latency Sync</h4>
-              <p className="text-[11px] text-zinc-400 leading-normal">Instant ⌘K retrieval and cross-language Polyglot morphing.</p>
+              <p className="text-[11px] text-slate-400 leading-normal">Instant ⌘K retrieval and cross-language Polyglot morphing.</p>
             </div>
           </div>
         </div>
 
+        {/* Feature Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan">
-              <Sparkles className="h-5 w-5" />
+          <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 sm:p-7 backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/50 hover:shadow-[0_20px_40px_rgba(56,189,248,0.2)]">
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent pointer-events-none" />
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.25)]">
+              <Sparkles className="h-6 w-6" />
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-white mb-1.5">Polyglot Morph Engine</h3>
-            <p className="text-zinc-400 text-xs leading-relaxed mb-3"><strong>Core Utility:</strong> Multi-stack logic conversion without rewrites.</p>
-            <p className="text-zinc-400 text-xs leading-relaxed">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-1.5">Polyglot Morph Engine</h3>
+            <p className="text-slate-400 text-xs leading-relaxed mb-3"><strong className="text-sky-400">Core Utility:</strong> Multi-stack logic conversion without rewrites.</p>
+            <p className="text-slate-300 text-xs leading-relaxed">
               Open any snippet in the edit modal, select a target language from the dropdown, and execute Morph. The neural engine rewires the implementation while preserving strict algorithmic invariants.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#12121A]/85 p-6 backdrop-blur-xl">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-              <BrainCircuit className="h-5 w-5" />
+          <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 sm:p-7 backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_20px_40px_rgba(168,85,247,0.2)]">
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent pointer-events-none" />
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
+              <BrainCircuit className="h-6 w-6" />
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-white mb-1.5">Cognitive X-Ray</h3>
-            <p className="text-zinc-400 text-xs leading-relaxed mb-3"><strong>Core Utility:</strong> Algorithmic profiling and vulnerability audits.</p>
-            <p className="text-zinc-400 text-xs leading-relaxed">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-1.5">Cognitive X-Ray</h3>
+            <p className="text-slate-400 text-xs leading-relaxed mb-3"><strong className="text-purple-400">Core Utility:</strong> Algorithmic profiling and vulnerability audits.</p>
+            <p className="text-slate-300 text-xs leading-relaxed">
               Click &apos;Run Diagnostics&apos; on any snippet card. The system benchmarks Big-O Time & Space complexities, traces operational paths, and alerts on edge-case memory bounds.
             </p>
           </div>
@@ -1135,132 +1253,153 @@ export default function Dashboard() {
 
       {/* Snippet Detail Modal */}
       <AnimatePresence>
-        {activeViewSnippet && (
-          <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }} 
-              className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-[#0e0e14]/95 shadow-[0_25px_80px_rgba(0,0,0,0.9)] backdrop-blur-3xl flex flex-col max-h-[88vh]"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-white/10 px-4 sm:px-6 py-4 bg-[#12121A]/60">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-2.5 py-1 text-[10px] font-mono font-bold text-neon-cyan uppercase tracking-wider shrink-0">
-                    {activeViewSnippet.language}
-                  </span>
-                  <h2 className="text-sm sm:text-lg font-bold text-white truncate">{activeViewSnippet.title}</h2>
+        {activeViewSnippet && (() => {
+          const accent = LANG_ACCENTS[activeViewSnippet.language] || { color: '#818cf8', gradient: '', border: '', glow: 'rgba(99,102,241,0.2)' };
+          return (
+            <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.95 }} 
+                className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-700/60 bg-[#161f30]/95 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_0_1px_rgba(99,102,241,0.15)] backdrop-blur-3xl flex flex-col max-h-[88vh]"
+              >
+                {/* Top Specular Edge */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/50 to-transparent pointer-events-none" />
+
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-slate-700/60 px-5 sm:px-7 py-4.5 bg-slate-900/60">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-mono font-bold tracking-wider uppercase border border-slate-700/70 bg-slate-800/80 shadow-sm shrink-0">
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accent.color, boxShadow: `0 0 8px ${accent.color}` }} />
+                      <span style={{ color: accent.color }}>{activeViewSnippet.language}</span>
+                    </span>
+                    <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight truncate">{activeViewSnippet.title}</h2>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button onClick={() => handleDeleteSnippet(activeViewSnippet.id)} className="rounded-xl bg-slate-800/80 border border-slate-700/60 p-2 text-slate-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/40 transition-all cursor-pointer" title="Delete"><Trash2 size={15} /></button>
+                    <button onClick={() => { setEditSnippet(activeViewSnippet); setViewSnippet(null); }} className="rounded-xl bg-slate-800/80 border border-slate-700/60 p-2 text-slate-400 hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/40 transition-all cursor-pointer" title="Edit"><Edit2 size={15} /></button>
+                    <button onClick={() => handleToggleStar(activeViewSnippet.id)} className="rounded-xl bg-slate-800/80 border border-slate-700/60 p-2 text-slate-400 hover:bg-amber-500/20 hover:text-amber-300 hover:border-amber-500/40 transition-all cursor-pointer" title="Star"><Star size={15} fill={activeViewSnippet.starred ? "#f59e0b" : "none"} color={activeViewSnippet.starred ? "#f59e0b" : "currentColor"} /></button>
+                    <div className="w-px h-5 bg-slate-700 mx-1"></div>
+                    <button onClick={() => setViewSnippet(null)} className="rounded-xl bg-slate-800/80 border border-slate-700/60 p-2 text-slate-400 hover:bg-slate-700 hover:text-white transition-all cursor-pointer"><X size={17} /></button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button onClick={() => handleDeleteSnippet(activeViewSnippet.id)} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-red-500/20 hover:text-red-300 transition-colors" title="Delete"><Trash2 size={15} /></button>
-                  <button onClick={() => { setEditSnippet(activeViewSnippet); setViewSnippet(null); }} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-neon-cyan/20 hover:text-neon-cyan transition-colors" title="Edit"><Edit2 size={15} /></button>
-                  <button onClick={() => handleToggleStar(activeViewSnippet.id)} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-amber-500/20 hover:text-amber-300 transition-colors" title="Star"><Star size={15} fill={activeViewSnippet.starred ? "#f59e0b" : "none"} color={activeViewSnippet.starred ? "#f59e0b" : "currentColor"} /></button>
-                  <div className="w-px h-5 bg-white/10 mx-1"></div>
-                  <button onClick={() => setViewSnippet(null)} className="rounded-lg bg-white/5 p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"><X size={17} /></button>
-                </div>
-              </div>
-              
-              {/* Body */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-5">
-                {activeViewSnippet.description && (
-                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed border-l-2 border-neon-cyan pl-3.5">
-                    {activeViewSnippet.description}
-                  </p>
-                )}
                 
-                {/* Code Highlighter */}
-                <div className="relative overflow-hidden rounded-xl border border-white/10 bg-[#07070A] shadow-inner">
-                  <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-black/50">
-                    <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Source Array</span>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-zinc-400"><Activity size={11} className="text-neon-magenta"/> {activeViewSnippet.views}</span>
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-zinc-400"><Copy size={11} className="text-emerald-400"/> {activeViewSnippet.copies}</span>
-                      <div className="w-px h-3 bg-white/10"></div>
-                      <button 
-                        onClick={() => { 
-                          navigator.clipboard.writeText(activeViewSnippet.code); 
-                          handleMetricUpdate(activeViewSnippet.id, 'copies');
-                        }} 
-                        className="text-[10px] font-mono font-bold flex items-center gap-1 text-neon-cyan hover:underline cursor-pointer"
-                      >
-                        <Copy size={11}/> Copy Code
-                      </button>
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-5 sm:p-7 flex flex-col gap-5">
+                  {activeViewSnippet.description && (
+                    <div className="rounded-2xl border border-indigo-500/25 bg-indigo-500/5 p-4 border-l-4 border-l-indigo-500">
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        {activeViewSnippet.description}
+                      </p>
                     </div>
-                  </div>
-                  <SyntaxHighlighter 
-                    language={activeViewSnippet.language.toLowerCase()} 
-                    style={vscDarkPlus} 
-                    customStyle={{ margin: 0, padding: '16px', fontSize: '12px', fontFamily: 'var(--font-mono)', background: 'transparent' }}
-                  >
-                    {activeViewSnippet.code}
-                  </SyntaxHighlighter>
-                </div>
-
-                {/* Diagnostics Section */}
-                <div className="rounded-xl border border-neon-cyan/30 bg-[#12121A]/80 p-4 sm:p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Zap className={`h-4 w-4 text-neon-cyan ${viewSnippetAnalyzing ? 'animate-pulse' : ''}`} />
-                      <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-neon-cyan">Cognitive Diagnostics</h3>
+                  )}
+                  
+                  {/* Code Highlighter */}
+                  <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-[#0a0f18] shadow-2xl">
+                    <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-900/80">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                          <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+                        </div>
+                        <span className="ml-2 text-[10px] font-mono uppercase tracking-widest text-slate-400">SOURCE READOUT</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 text-[10px] font-mono text-slate-400"><Activity size={11} className="text-purple-400"/> {activeViewSnippet.views}</span>
+                        <span className="flex items-center gap-1 text-[10px] font-mono text-slate-400"><Copy size={11} className="text-emerald-400"/> {activeViewSnippet.copies}</span>
+                        <div className="w-px h-3 bg-slate-700"></div>
+                        <button 
+                          onClick={() => { 
+                            navigator.clipboard.writeText(activeViewSnippet.code); 
+                            handleMetricUpdate(activeViewSnippet.id, 'copies');
+                          }} 
+                          className="text-[10px] font-mono font-bold flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                        >
+                          <Copy size={11}/> Copy Code
+                        </button>
+                      </div>
                     </div>
-                    {!activeViewSnippet.xray && (
-                      <button 
-                        onClick={runModalXRay} 
-                        disabled={viewSnippetAnalyzing} 
-                        className="flex items-center gap-1.5 rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-mono font-bold text-neon-cyan transition-all hover:bg-neon-cyan/20 disabled:opacity-50 cursor-pointer"
-                      >
-                        <BrainCircuit className={`h-3.5 w-3.5 ${viewSnippetAnalyzing ? 'animate-spin' : ''}`} />
-                        {viewSnippetAnalyzing ? 'Scanning...' : 'Run Diagnostics'}
-                      </button>
-                    )}
+                    <SyntaxHighlighter 
+                      language={activeViewSnippet.language.toLowerCase()} 
+                      style={vscDarkPlus} 
+                      customStyle={{ margin: 0, padding: '18px', fontSize: '12px', fontFamily: 'var(--font-mono)', background: 'transparent' }}
+                    >
+                      {activeViewSnippet.code}
+                    </SyntaxHighlighter>
                   </div>
 
-                  {activeViewSnippet.xray ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex gap-3">
-                          <div className="flex-1 rounded-lg border border-neon-cyan/30 bg-black/40 p-2.5 text-center">
-                            <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">Time Complexity</div>
-                            <div className="mt-1 text-base font-black text-neon-cyan font-mono">{activeViewSnippet.xray.timeComplexity}</div>
-                          </div>
-                          <div className="flex-1 rounded-lg border border-white/10 bg-black/40 p-2.5 text-center">
-                            <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">Space Complexity</div>
-                            <div className="mt-1 text-base font-black text-white font-mono">{activeViewSnippet.xray.spaceComplexity}</div>
-                          </div>
+                  {/* Diagnostics Section */}
+                  <div className="rounded-2xl border border-indigo-500/30 bg-[#0f172a]/90 p-5 shadow-inner">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+                          <Zap className={`h-4 w-4 ${viewSnippetAnalyzing ? 'animate-pulse' : ''}`} />
                         </div>
                         <div>
-                          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-red-400">
-                            <AlertTriangle className="h-3 w-3 text-red-400" /> Vulnerabilities & Bounds
+                          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-300">Cognitive Diagnostics</h3>
+                          <p className="text-[10px] text-slate-400">Algorithmic profiling & complexity audit</p>
+                        </div>
+                      </div>
+                      {!activeViewSnippet.xray && (
+                        <button 
+                          onClick={runModalXRay} 
+                          disabled={viewSnippetAnalyzing} 
+                          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-500 hover:from-indigo-500 hover:to-sky-400 px-4 py-2 text-xs font-bold text-white shadow-[0_4px_16px_rgba(99,102,241,0.35)] cursor-pointer disabled:opacity-50 active:scale-95 transition-all"
+                        >
+                          <BrainCircuit className={`h-3.5 w-3.5 ${viewSnippetAnalyzing ? 'animate-spin' : ''}`} />
+                          {viewSnippetAnalyzing ? 'Scanning...' : 'Run Diagnostics'}
+                        </button>
+                      )}
+                    </div>
+
+                    {activeViewSnippet.xray ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="rounded-xl border border-indigo-500/30 bg-[#161f30]/80 p-3 text-center">
+                              <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Time Complexity</div>
+                              <div className="mt-1 text-base font-black text-indigo-400 font-mono">{activeViewSnippet.xray.timeComplexity}</div>
+                            </div>
+                            <div className="rounded-xl border border-sky-500/30 bg-[#161f30]/80 p-3 text-center">
+                              <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Space Complexity</div>
+                              <div className="mt-1 text-base font-black text-sky-400 font-mono">{activeViewSnippet.xray.spaceComplexity}</div>
+                            </div>
                           </div>
-                          <ul className="space-y-1">
-                            {activeViewSnippet.xray.vulnerabilities.map((item, idx) => (
-                              <li key={idx} className="text-[11px] leading-relaxed text-red-200/90 pl-3 relative before:absolute before:left-0 before:top-1.5 before:h-1 before:w-1 before:rounded-full before:bg-red-500">{item}</li>
+                          <div className="rounded-xl border border-red-500/20 bg-red-950/20 p-3.5">
+                            <div className="mb-2 flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-red-400">
+                              <AlertTriangle className="h-3.5 w-3.5 text-red-400" /> Vulnerabilities & Bounds
+                            </div>
+                            <ul className="space-y-1.5">
+                              {activeViewSnippet.xray.vulnerabilities.map((item, idx) => (
+                                <li key={idx} className="text-[11px] leading-relaxed text-red-200/90 pl-3.5 relative before:absolute before:left-0 before:top-2 before:h-1.5 before:w-1.5 before:rounded-full before:bg-red-500">{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="rounded-xl border border-indigo-500/20 bg-indigo-950/20 p-3.5">
+                          <div className="mb-2 flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-300">
+                            <Eye className="h-3.5 w-3.5 text-indigo-400" /> Execution Walkthrough
+                          </div>
+                          <ul className="space-y-1.5">
+                            {activeViewSnippet.xray.explanation.map((item, idx) => (
+                              <li key={idx} className="text-[11px] leading-relaxed text-slate-300 pl-3.5 relative before:absolute before:left-0 before:top-2 before:h-1.5 before:w-1.5 before:rounded-full before:bg-indigo-400">{item}</li>
                             ))}
                           </ul>
                         </div>
                       </div>
-                      <div>
-                        <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-300">
-                          <Eye className="h-3 w-3 text-neon-cyan" /> Execution Walkthrough
-                        </div>
-                        <ul className="space-y-1">
-                          {activeViewSnippet.xray.explanation.map((item, idx) => (
-                            <li key={idx} className="text-[11px] leading-relaxed text-zinc-300 pl-3 relative before:absolute before:left-0 before:top-1.5 before:h-1 before:w-1 before:rounded-full before:bg-neon-cyan">{item}</li>
-                          ))}
-                        </ul>
+                    ) : (
+                      <div className="py-6 text-center text-xs text-slate-500 font-mono flex flex-col items-center gap-2">
+                        <BrainCircuit size={28} className="opacity-40 text-indigo-400" />
+                        <p>Neural pathways unmapped. Run diagnostics to benchmark complexity.</p>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="py-4 text-center text-xs text-zinc-500 font-mono flex flex-col items-center gap-1.5">
-                      <BrainCircuit size={24} className="opacity-40 text-neon-cyan" />
-                      <p>Neural pathways unmapped. Run diagnostics to benchmark complexity.</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
 
       <SnippetFormModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddSnippet} />

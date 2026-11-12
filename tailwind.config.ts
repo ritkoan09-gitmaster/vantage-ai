@@ -24,6 +24,16 @@ module.exports = {
           blue: '#0a0f24',
           cyan: '#00f0ff',
           magenta: '#ff00ff',
+        },
+        slate: {
+          dark: '#0f172a',
+          card: '#1e293b',
+          border: '#334155',
+          hover: '#283548',
+        },
+        primary: {
+          indigo: '#6366f1',
+          blue: '#38bdf8',
         }
       }
     },

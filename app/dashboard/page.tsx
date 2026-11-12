@@ -437,87 +437,87 @@ export default function Dashboard() {
       <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_8px_#00f0ff]" />
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon-cyan">Cognitive Engine Online</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">System Ready • Real-Time</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">Cognitive Vault</h1>
-          <p className="mt-1 text-xs sm:text-sm text-zinc-400">Manage, morph, and analyze production code sequences with neural AI.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100">Workspace Dashboard</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">Manage, analyze, and deploy production code sequences with neural AI.</p>
         </div>
 
         <button 
           onClick={() => setAddOpen(true)} 
-          className="sm:hidden flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-[0_0_20px_rgba(0,240,255,0.35)] active:scale-95"
+          className="sm:hidden flex items-center justify-center gap-2 w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_16px_rgba(99,102,241,0.35)] active:scale-95"
         >
           <Plus size={16} /> New Snippet
         </button>
       </div>
 
-      {/* Cyberpunk Neon Stat Cards */}
+      {/* Modern Analytics Metric Cards */}
       <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Stat 1 */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 backdrop-blur-xl group hover:border-neon-cyan/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-          <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-neon-cyan/10 blur-xl group-hover:bg-neon-cyan/20 transition-colors" />
+        {/* Metric 1 */}
+        <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-mono font-bold tracking-widest text-zinc-400">Vault Capacity</p>
-              <p className="text-2xl sm:text-3xl font-black mt-1 text-white tracking-tight">{totalSnippetsCount} <span className="text-xs font-normal text-zinc-500 font-mono">units</span></p>
-            </div>
-            <div className="p-3 rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.2)]">
-              <LayoutGrid size={20}/>
+            <span className="text-xs font-semibold text-slate-400">Vault Capacity</span>
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <LayoutGrid size={18}/>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
-            <span className="text-neon-cyan font-bold">{snippets.filter(s => s.starred).length}</span> starred in quick access
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">{totalSnippetsCount}</span>
+            <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">Active</span>
           </div>
+          <p className="mt-2 text-xs text-slate-400">
+            {snippets.filter(s => s.starred).length} snippets starred in quick access
+          </p>
         </div>
 
-        {/* Stat 2 */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 backdrop-blur-xl group hover:border-emerald-500/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-          <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-emerald-500/10 blur-xl group-hover:bg-emerald-500/20 transition-colors" />
+        {/* Metric 2 */}
+        <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-mono font-bold tracking-widest text-zinc-400">Total Deploys</p>
-              <p className="text-2xl sm:text-3xl font-black mt-1 text-emerald-400 tracking-tight">{globalCopiesCount} <span className="text-xs font-normal text-zinc-500 font-mono">copies</span></p>
-            </div>
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-              <Copy size={20}/>
+            <span className="text-xs font-semibold text-slate-400">Total Deployments</span>
+            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400">
+              <Copy size={18}/>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
-            <span className="text-emerald-400 font-bold">100%</span> zero-latency retrieval
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">{globalCopiesCount}</span>
+            <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">+49%</span>
           </div>
+          <p className="mt-2 text-xs text-slate-400">
+            100% verified copy and retrieval rate
+          </p>
         </div>
 
-        {/* Stat 3 */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 backdrop-blur-xl group hover:border-neon-magenta/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-          <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-neon-magenta/10 blur-xl group-hover:bg-neon-magenta/20 transition-colors" />
+        {/* Metric 3 */}
+        <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-mono font-bold tracking-widest text-zinc-400">Diagnostic Scans</p>
-              <p className="text-2xl sm:text-3xl font-black mt-1 text-neon-magenta tracking-tight">{totalViewsCount} <span className="text-xs font-normal text-zinc-500 font-mono">views</span></p>
-            </div>
-            <div className="p-3 rounded-xl bg-neon-magenta/10 border border-neon-magenta/20 text-neon-magenta shadow-[0_0_15px_rgba(255,0,255,0.2)]">
-              <Activity size={20}/>
+            <span className="text-xs font-semibold text-slate-400">Diagnostic Scans</span>
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <Activity size={18}/>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
-            <span className="text-neon-magenta font-bold">{snippets.filter(s => s.xray).length}</span> snippets with X-Ray active
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">{totalViewsCount}</span>
+            <span className="text-xs font-medium text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-1.5 py-0.5 rounded">Scanned</span>
           </div>
+          <p className="mt-2 text-xs text-slate-400">
+            {snippets.filter(s => s.xray).length} units profiled with Big-O complexity
+          </p>
         </div>
       </div>
 
       {/* Filter and Sorting Controls */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Horizontal scrollable pill filters on mobile */}
+        {/* Horizontal scrollable pill filters */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
           {filterOptions.map(option => (
             <button 
               key={option} 
               onClick={() => setActiveFilter(option)} 
-              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-mono font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`shrink-0 rounded-lg border px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                 activeFilter === option 
-                  ? 'border-neon-cyan bg-neon-cyan/15 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.3)]' 
-                  : 'border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
+                  ? 'border-indigo-500/50 bg-indigo-600 text-white shadow-[0_2px_10px_rgba(99,102,241,0.3)]' 
+                  : 'border-slate-800 bg-[#1e293b] text-slate-400 hover:border-slate-700 hover:text-slate-200'
               }`}
             >
               {option === 'Starred' ? (
@@ -528,39 +528,39 @@ export default function Dashboard() {
         </div>
 
         {/* Sort buttons */}
-        <div className="flex items-center self-start sm:self-auto rounded-xl border border-white/10 bg-white/5 p-1">
+        <div className="flex items-center self-start sm:self-auto rounded-lg border border-slate-800 bg-[#1e293b] p-1">
           <button 
             onClick={() => setSortBy('newest')} 
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
-              sortBy === 'newest' ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40' : 'text-zinc-400 hover:text-white'
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              sortBy === 'newest' ? 'bg-slate-800 text-slate-100 shadow-sm' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Clock className="h-3 w-3" /> Newest
+            <Clock className="h-3.5 w-3.5" /> Newest
           </button>
           <button 
             onClick={() => setSortBy('deployed')} 
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
-              sortBy === 'deployed' ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40' : 'text-zinc-400 hover:text-white'
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              sortBy === 'deployed' ? 'bg-slate-800 text-slate-100 shadow-sm' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Flame className="h-3 w-3" /> Deployed
+            <Flame className="h-3.5 w-3.5" /> Deployed
           </button>
         </div>
       </div>
 
       {/* Snippet Grid */}
       {visibleSnippets.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-[#12121A]/60 p-12 text-center backdrop-blur-xl">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-zinc-500">
+        <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-12 text-center shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-slate-400">
             <Code2 size={24} />
           </div>
-          <h3 className="text-base font-bold text-white mb-1">No Snippets Found</h3>
-          <p className="text-xs text-zinc-400 max-w-sm mx-auto mb-6">
-            {activeFilter !== "All" ? `No snippets match filter "${activeFilter}".` : "Your neural vault is currently empty. Add your first code block to get started."}
+          <h3 className="text-base font-bold text-slate-100 mb-1">No Snippets Found</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto mb-6">
+            {activeFilter !== "All" ? `No snippets match filter "${activeFilter}".` : "Your workspace vault is currently empty. Add your first snippet to get started."}
           </p>
           <button 
             onClick={() => setAddOpen(true)} 
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_0_20px_rgba(0,240,255,0.35)]"
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_4px_16px_rgba(99,102,241,0.35)]"
           >
             <Plus size={14} /> Add Snippet Now
           </button>
@@ -729,59 +729,56 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Profile Card - Cyberpunk Badge Format */}
-        <div className="mb-8 rounded-2xl border border-white/10 bg-[#12121A]/85 p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mr-10 -mt-10 h-32 w-32 rounded-full bg-neon-cyan/5 blur-2xl pointer-events-none" />
-          
-          <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-5">
+        {/* Profile Card - Modern Slate Format */}
+        <div className="mb-8 rounded-2xl border border-slate-800 bg-[#1e293b] p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.25)] relative overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-700/60 pb-3 mb-5">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_8px_#00f0ff]" />
-              <h3 className="text-[11px] font-mono font-bold uppercase tracking-widest text-neon-cyan">Developer Identity</h3>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-300">Developer Profile</h3>
             </div>
-            <span className="text-[10px] font-mono bg-white/5 border border-white/10 px-2 py-0.5 rounded text-zinc-400 uppercase">
+            <span className="text-[10px] font-mono bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-slate-400">
               ID: {profile.username ? profile.username.slice(0, 8).toUpperCase() : 'VAULT-01'}
             </span>
           </div>
 
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            {/* Avatar with Glow */}
+            {/* Avatar */}
             <div className="relative group shrink-0">
-              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-neon-cyan to-blue-600 opacity-60 blur-sm group-hover:opacity-100 transition-opacity" />
-              <div className="relative flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-2xl bg-[#07070A] border border-white/10 text-2xl sm:text-3xl font-black text-white font-mono shadow-2xl">
+              <div className="relative flex h-20 w-20 sm:h-22 sm:w-22 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-2xl sm:text-3xl font-black text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)]">
                 {userInitials}
               </div>
             </div>
 
-            {/* Structured Info Grid with clean cards */}
+            {/* Structured Info Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
-              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Handle</span>
-                <p className="font-bold text-white font-mono text-sm truncate">@{profile.username || 'developer'}</p>
+              <div className="rounded-xl border border-slate-700/60 bg-[#0f172a] p-3">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Handle</span>
+                <p className="font-bold text-slate-100 font-mono text-sm truncate">@{profile.username || 'developer'}</p>
               </div>
 
-              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Verified Email</span>
-                <p className="font-bold text-white font-mono text-sm truncate">{profile.email || 'N/A'}</p>
+              <div className="rounded-xl border border-slate-700/60 bg-[#0f172a] p-3">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Verified Email</span>
+                <p className="font-bold text-slate-100 font-mono text-sm truncate">{profile.email || 'N/A'}</p>
               </div>
 
-              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Encrypted Phone</span>
-                <p className="font-bold text-white font-mono text-sm">{profile.phone || 'Not configured'}</p>
+              <div className="rounded-xl border border-slate-700/60 bg-[#0f172a] p-3">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Encrypted Phone</span>
+                <p className="font-bold text-slate-100 font-mono text-sm">{profile.phone || 'Not configured'}</p>
               </div>
 
-              <div className="rounded-xl border border-neon-cyan/20 bg-neon-cyan/[0.03] p-3">
-                <span className="text-[10px] font-mono text-neon-cyan/70 uppercase tracking-widest font-semibold block mb-1">Active Plan</span>
-                <p className="font-black text-neon-cyan uppercase tracking-wide text-sm font-mono">{activeTier}</p>
+              <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3">
+                <span className="text-[10px] text-indigo-300 uppercase tracking-wider font-semibold block mb-1">Active Plan</span>
+                <p className="font-extrabold text-indigo-200 uppercase tracking-wide text-sm">{activeTier}</p>
               </div>
 
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-3">
-                <span className="text-[10px] font-mono text-emerald-400/70 uppercase tracking-widest font-semibold block mb-1">Activation</span>
-                <p className="font-bold text-emerald-400 font-mono text-sm">{subDates.activation}</p>
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
+                <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-semibold block mb-1">Activation</span>
+                <p className="font-bold text-emerald-300 font-mono text-sm">{subDates.activation}</p>
               </div>
 
-              <div className="rounded-xl border border-white/5 bg-black/40 p-3">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-semibold block mb-1">Valid Until</span>
-                <p className="font-bold text-zinc-300 font-mono text-sm">{subDates.expiry}</p>
+              <div className="rounded-xl border border-slate-700/60 bg-[#0f172a] p-3">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Valid Until</span>
+                <p className="font-bold text-slate-300 font-mono text-sm">{subDates.expiry}</p>
               </div>
             </div>
           </div>
@@ -789,51 +786,51 @@ export default function Dashboard() {
 
         {/* Subscription Tiers with Mobile Swipe Carousel */}
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white tracking-tight">Subscription Tiers</h2>
-          <span className="text-[11px] font-mono text-zinc-500 md:hidden flex items-center gap-1">
+          <h2 className="text-lg font-bold text-slate-100 tracking-tight">Subscription Tiers</h2>
+          <span className="text-xs text-slate-400 md:hidden flex items-center gap-1">
             Swipe left/right →
           </span>
         </div>
 
         {/* Mobile Swipe Carousel + Desktop Grid */}
-        <div className="flex md:grid md:grid-cols-3 gap-4 sm:gap-5 overflow-x-auto pt-4 pb-4 md:pb-0 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex md:grid md:grid-cols-3 gap-4 sm:gap-5 overflow-x-auto pt-2 pb-4 md:pb-0 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
           {tiers.map((tier) => (
             <div 
               key={tier.name} 
               className={`shrink-0 w-[84vw] sm:w-[320px] md:w-auto snap-center relative flex flex-col rounded-2xl border ${
                 tier.highlight 
-                  ? 'border-neon-cyan/50 bg-[#12121A]/95 shadow-[0_10px_40px_rgba(0,240,255,0.15)] ring-1 ring-neon-cyan/30' 
-                  : 'border-white/10 bg-[#12121A]/60'
-              } p-6 backdrop-blur-xl transition-all`}
+                  ? 'border-indigo-500/60 bg-[#1e293b] shadow-[0_4px_24px_rgba(99,102,241,0.2)]' 
+                  : 'border-slate-800 bg-[#1e293b]'
+              } p-6 transition-all`}
             >
               {tier.highlight && (
-                <div className="mb-4 inline-flex items-center gap-1.5 self-start rounded-full bg-gradient-to-r from-neon-cyan/25 to-blue-600/25 border border-neon-cyan/60 px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(0,240,255,0.3)]">
-                  <Sparkles size={11} className="text-neon-cyan" />
+                <div className="mb-4 inline-flex items-center gap-1.5 self-start rounded-full bg-indigo-500/20 border border-indigo-500/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white shadow-sm">
+                  <Sparkles size={11} className="text-indigo-400" />
                   Recommended
                 </div>
               )}
-              <h3 className="text-base font-bold text-white">{tier.name}</h3>
+              <h3 className="text-base font-bold text-slate-100">{tier.name}</h3>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-3xl font-black text-white tracking-tight">{tier.price}</span>
-                <span className="text-xs font-mono text-zinc-400">{tier.period}</span>
+                <span className="text-3xl font-black text-slate-100 tracking-tight">{tier.price}</span>
+                <span className="text-xs text-slate-400">{tier.period}</span>
               </div>
-              <p className="mt-2 text-xs text-zinc-400 min-h-[32px]">{tier.desc}</p>
-              <div className="my-5 h-px w-full bg-white/10" />
+              <p className="mt-2 text-xs text-slate-400 min-h-[32px]">{tier.desc}</p>
+              <div className="my-5 h-px w-full bg-slate-700/60" />
               <ul className="mb-6 flex flex-col gap-2.5 flex-1">
                 {tier.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                    <CheckCircle2 size={14} className="text-neon-cyan shrink-0 mt-0.5" />{f}
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                    <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />{f}
                   </li>
                 ))}
               </ul>
               <button 
                 onClick={() => handleSelectTier(tier.name as SubscriptionTier)} 
-                className={`mt-auto w-full rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
+                className={`mt-auto w-full rounded-xl px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
                   activeTier === tier.name 
-                    ? 'border border-neon-cyan/40 bg-neon-cyan/15 text-neon-cyan' 
+                    ? 'border border-indigo-500/50 bg-indigo-500/15 text-indigo-300' 
                     : tier.highlight 
-                      ? 'bg-gradient-to-r from-neon-cyan to-blue-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:opacity-90' 
-                      : 'border border-white/10 bg-white/5 text-white hover:bg-white/10'
+                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_4px_16px_rgba(99,102,241,0.35)]' 
+                      : 'border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
                 }`}
               >
                 {activeTier === tier.name ? 'Active Plan' : 'Select Plan'}
@@ -908,17 +905,17 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-[100dvh] w-full bg-black overflow-hidden text-white selection:bg-neon-cyan/30">
+    <div className="flex h-[100dvh] w-full bg-[#0f172a] overflow-hidden text-slate-100 selection:bg-indigo-500/30">
       <Sidebar open={sideOpen} onClose={() => setSideOpen(false)} activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      <main className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-y-auto overscroll-contain relative z-10">
+      <main className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-y-auto overscroll-contain relative z-10 bg-[#0f172a]">
         {/* Responsive Dashboard Header */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-[#07070A]/90 px-4 sm:px-6 py-3 backdrop-blur-2xl">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-800 bg-[#111827]/90 px-4 sm:px-6 py-3 backdrop-blur-2xl">
           {/* Left: Mobile Menu + Search */}
           <div className="flex items-center gap-2.5 flex-1 max-w-md">
             <button 
               onClick={() => setSideOpen(true)} 
-              className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300 lg:hidden hover:bg-white/10 hover:text-white transition-colors cursor-pointer active:scale-95 shrink-0"
+              className="rounded-lg border border-slate-700 bg-slate-800/80 p-2 text-slate-300 lg:hidden hover:bg-slate-700 hover:text-white transition-colors cursor-pointer active:scale-95 shrink-0"
               aria-label="Toggle navigation"
             >
               <Menu className="h-5 w-5" />
@@ -926,11 +923,11 @@ export default function Dashboard() {
             
             <div 
               onClick={() => setCmdOpen(true)} 
-              className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 transition-all hover:border-neon-cyan/50 hover:bg-white/10"
+              className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-slate-800 bg-slate-800/50 px-3 py-2 transition-all hover:border-slate-700 hover:bg-slate-800/80"
             >
-              <Search className="h-4 w-4 text-neon-cyan shrink-0" />
-              <span className="flex-1 text-xs text-zinc-400 truncate">Search vault...</span>
-              <kbd className="hidden sm:inline-block rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-400 font-mono">⌘K</kbd>
+              <Search className="h-4 w-4 text-indigo-400 shrink-0" />
+              <span className="flex-1 text-xs text-slate-400 truncate">Search vault...</span>
+              <kbd className="hidden sm:inline-block rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400 font-mono">⌘K</kbd>
             </div>
           </div>
 

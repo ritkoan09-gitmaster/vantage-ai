@@ -50,6 +50,8 @@ export async function POST(req: Request) {
       starred: snippet.starred || false,
       copies: snippet.copies || 0,
       views: snippet.views || 0,
+      conversionCount: snippet.conversionCount || 0,
+      highRisk: snippet.highRisk || false,
       xray: snippet.xray || null
     });
 
@@ -83,7 +85,9 @@ export async function PUT(req: Request) {
           starred: snippet.starred,
           xray: snippet.xray,
           copies: snippet.copies, // 👈 Ye missing tha
-          views: snippet.views    // 👈 Ye missing tha
+          views: snippet.views,    // 👈 Ye missing tha
+          conversionCount: snippet.conversionCount || 0,
+          highRisk: snippet.highRisk || false
         } 
       },
       { new: true }

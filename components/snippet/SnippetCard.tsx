@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Snippet } from '@/types';
-import { Star, Copy, Edit2, Zap, BrainCircuit, RotateCcw, AlertTriangle, Eye, Activity, Trash2, Flame, ArrowUpRight } from 'lucide-react';
+import { Snippet, XRayData } from '@/types';
+import { Star, Copy, Edit2, Zap, BrainCircuit, RotateCcw, AlertTriangle, Eye, Activity, Trash2, Flame, ArrowUpRight, GitBranch, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -53,9 +53,10 @@ interface SnippetCardProps {
   onEdit: (snippet: Snippet) => void;
   onDelete: (id: string) => void;
   onUpdateMetric: (id: string, type: 'copies' | 'views') => void; 
+  onUpdateXRay?: (id: string, xray: XRayData, isHighRisk?: boolean) => void;
 }
 
-export function SnippetCard({ snippet, isTrending, onToggleStar, onEdit, onDelete, onUpdateMetric }: SnippetCardProps) {
+export function SnippetCard({ snippet, isTrending, onToggleStar, onEdit, onDelete, onUpdateMetric, onUpdateXRay }: SnippetCardProps) {
   const [copied, setCopied] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -129,8 +130,16 @@ export function SnippetCard({ snippet, isTrending, onToggleStar, onEdit, onDelet
           vulnerabilities: data.xray.bugs?.length ? data.xray.bugs : ['Zero edge-case vulnerabilities found.']
         };
 
+        const vulnsCount = newXRay.vulnerabilities?.length || 0;
+        const hasHeavyComplexity = /(n\^|n²|n³|2\^|n!)/i.test(newXRay.timeComplexity || '');
+        const isHighRisk = vulnsCount > 3 || (hasHeavyComplexity && vulnsCount > 1);
+
         setLocalXRay(newXRay);
         setIsFlipped(true);
+
+        if (onUpdateXRay) {
+          onUpdateXRay(snippet.id, newXRay, isHighRisk);
+        }
 
         const username = localStorage.getItem('vault_username');
         if (username) {
@@ -139,7 +148,7 @@ export function SnippetCard({ snippet, isTrending, onToggleStar, onEdit, onDelet
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               username,
-              snippet: { ...snippet, xray: newXRay }
+              snippet: { ...snippet, xray: newXRay, highRisk: isHighRisk }
             })
           }).catch(err => console.error("Failed to save XRay:", err));
         }
@@ -213,6 +222,13 @@ export function SnippetCard({ snippet, isTrending, onToggleStar, onEdit, onDelet
                     <span className="text-[10px] font-mono font-bold text-emerald-300 uppercase tracking-wide">Edge Synced</span>
                   </div>
                 )}
+
+                {(snippet.highRisk || (localXRay?.vulnerabilities && localXRay.vulnerabilities.length > 3)) && (
+                  <div className="rounded-lg bg-rose-500/15 border border-rose-500/35 flex items-center gap-1 px-2 py-0.5 shadow-[0_0_12px_rgba(244,63,94,0.25)]" title="Multiple high complexity risks contained by AI diagnostics">
+                    <ShieldAlert size={12} className="text-rose-400" />
+                    <span className="text-[10px] font-mono font-bold text-rose-300 uppercase tracking-wide">Risk Saved</span>
+                  </div>
+                )}
               </div>
 
               <h3 className="truncate text-base font-extrabold text-white tracking-tight group-hover:text-sky-300 transition-colors">
@@ -276,13 +292,18 @@ export function SnippetCard({ snippet, isTrending, onToggleStar, onEdit, onDelet
           {/* FOOTER ACTIONS */}
           <div className="mt-auto flex flex-col gap-3 pt-3 border-t border-white/10 z-10">
             <div className="flex items-center justify-between">
-              <div className="flex gap-4 text-xs font-mono text-slate-400">
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <Copy className="h-3.5 w-3.5 text-sky-400" /> {snippet.copies}
+              <div className="flex items-center gap-3.5 text-xs font-mono text-slate-400">
+                <span className="flex items-center gap-1.5 text-slate-300" title="Deployments / Copies">
+                  <Copy className="h-3.5 w-3.5 text-sky-400" /> {snippet.copies || 0}
                 </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <Activity className="h-3.5 w-3.5 text-indigo-400" /> {snippet.views}
+                <span className="flex items-center gap-1.5 text-slate-300" title="Diagnostic Scans">
+                  <Activity className="h-3.5 w-3.5 text-indigo-400" /> {snippet.views || 0}
                 </span>
+                {(snippet.conversionCount ?? 0) > 0 && (
+                  <span className="flex items-center gap-1 text-emerald-300" title="Language Conversions">
+                    <GitBranch className="h-3.5 w-3.5 text-emerald-400" /> {snippet.conversionCount}
+                  </span>
+                )}
               </div>
               <button 
                 onClick={handleCopy} 

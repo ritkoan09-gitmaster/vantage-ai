@@ -74,6 +74,7 @@ export function SnippetEditModal({ snippet, open, onClose, onSave, activeTier, m
             ...prev,
             code: data.translatedCode,
             language: morphTarget,
+            conversionCount: (prev.conversionCount || 0) + 1,
             xray: undefined
           };
         });

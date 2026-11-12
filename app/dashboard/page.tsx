@@ -331,9 +331,21 @@ export default function Dashboard() {
     }
   }, [router, showPricingPopup]);
 
+  const highRiskSavedSnippets = snippets.filter(s => {
+    if (s.highRisk) return true;
+    if (!s.xray) return false;
+    const vulnsCount = s.xray.vulnerabilities?.length || 0;
+    const hasHeavyComplexity = /(n\^|n²|n³|2\^|n!)/i.test(s.xray.timeComplexity || '');
+    return vulnsCount > 3 || (hasHeavyComplexity && vulnsCount > 1);
+  });
+  const highRiskSavedCount = highRiskSavedSnippets.length;
+
   const visibleSnippets = snippets
     .filter(s => {
       if (activeFilter === "Starred") return s.starred;
+      if (activeFilter === "High Risk") {
+        return s.highRisk || (s.xray && ((s.xray.vulnerabilities?.length || 0) > 3 || (/(n\^|n²|n³|2\^|n!)/i.test(s.xray.timeComplexity || '') && (s.xray.vulnerabilities?.length || 0) > 1)));
+      }
       if (activeFilter !== "All") return s.language === activeFilter;
       return true;
     })
@@ -349,11 +361,12 @@ export default function Dashboard() {
   const maxViews = Math.max(...snippets.map(s => s.views || 0), 0);
 
   const dynamicLanguages = Array.from(new Set(snippets.map(s => s.language)));
-  const filterOptions = ["All", "Starred", ...dynamicLanguages];
+  const filterOptions = ["All", "Starred", ...(highRiskSavedCount > 0 ? ["High Risk"] : []), ...dynamicLanguages];
 
   const totalSnippetsCount = snippets.length;
   const globalCopiesCount = snippets.reduce((acc, curr) => acc + (curr.copies || 0), 0);
   const totalViewsCount = snippets.reduce((acc, curr) => acc + (curr.views || 0), 0);
+  const totalLanguageConversions = snippets.reduce((acc, curr) => acc + (curr.conversionCount || 0), 0);
 
   // Derived language groups for language-wise mobile carousel view (newest snippet's language appears first!)
   const languageGroups: { language: string; snippets: Snippet[] }[] = [];
@@ -368,19 +381,43 @@ export default function Dashboard() {
     }
   }
 
-  const handleMetricUpdate = async (id: string, type: 'copies' | 'views') => {
+  const handleUpdateXRay = (id: string, newXRay: any, isHighRisk?: boolean) => {
     syncSnippets(prev => prev.map(s => {
       if (s.id === id) {
-        return { ...s, [type]: (s[type] || 0) + 1 };
+        return { 
+          ...s, 
+          xray: newXRay, 
+          highRisk: isHighRisk !== undefined ? isHighRisk : s.highRisk 
+        };
       }
       return s;
     }));
+  };
+
+  const handleMetricUpdate = async (id: string, type: 'copies' | 'views') => {
+    // Optimistically update local state
+    syncSnippets(prev =>
+      prev.map(s => {
+        if (s.id === id) {
+          if (type === 'copies') {
+            return { ...s, copies: (s.copies || 0) + 1 };
+          } else {
+            return { ...s, views: (s.views || 0) + 1 };
+          }
+        }
+        return s;
+      })
+    );
 
     const username = localStorage.getItem('vault_username');
     const snippetToUpdate = snippets.find(s => s.id === id);
     if (!snippetToUpdate || !username) return;
 
-    const updatedSnippet = { ...snippetToUpdate, [type]: (snippetToUpdate[type] || 0) + 1 };
+    const updatedSnippet = {
+      ...snippetToUpdate,
+      copies: type === 'copies' ? (snippetToUpdate.copies || 0) + 1 : snippetToUpdate.copies,
+      views: type === 'views' ? (snippetToUpdate.views || 0) + 1 : snippetToUpdate.views,
+    };
 
     try {
       await fetch('/api/snippets', {
@@ -389,7 +426,7 @@ export default function Dashboard() {
         body: JSON.stringify({ username, snippet: updatedSnippet })
       });
     } catch (error) {
-      console.error("Metric sync failed", error);
+      console.error('Metric sync failed', error);
     }
   };
 
@@ -535,7 +572,7 @@ export default function Dashboard() {
           <span className="text-indigo-400">Swipe cards →</span>
         </div>
 
-        <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-5 overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0">
+        <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0">
           {/* Metric 1 - Indigo Glow */}
           <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-[0_20px_40px_rgba(99,102,241,0.25)]">
             <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
@@ -556,27 +593,47 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Metric 2 - Sky Blue Glow */}
-          <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/50 hover:shadow-[0_20px_40px_rgba(56,189,248,0.25)]">
-            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-sky-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent pointer-events-none" />
+          {/* Metric 2 - Emerald Glow (Language Conversions) */}
+          <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-[0_20px_40px_rgba(16,185,129,0.25)]">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
             
             <div className="flex items-center justify-between relative z-10">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Deployments</span>
-              <div className="p-3 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-300 shadow-[0_0_15px_rgba(56,189,248,0.25)]">
-                <Copy size={20}/>
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Language Conversions</span>
+              <div className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
+                <GitBranch size={20}/>
               </div>
             </div>
             <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
-              <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{globalCopiesCount}</span>
-              <span className="text-xs font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">+49%</span>
+              <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{totalLanguageConversions}</span>
+              <span className="text-xs font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Polyglot</span>
             </div>
             <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
-              <span className="text-emerald-400 font-bold">100%</span> verified edge delivery
+              <span className="text-emerald-400 font-bold">{snippets.filter(s => (s.conversionCount || 0) > 0).length}</span> units converted cross-stack
             </p>
           </div>
 
-          {/* Metric 3 - Fuchsia / Purple Glow */}
+          {/* Metric 3 - Rose Glow (Crash Defense - High Risk >3 Issues) */}
+          <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/50 hover:shadow-[0_20px_40px_rgba(244,63,94,0.25)]">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-rose-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-rose-400/40 to-transparent pointer-events-none" />
+            
+            <div className="flex items-center justify-between relative z-10">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Crash Defense</span>
+              <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.25)]">
+                <ShieldAlert size={20}/>
+              </div>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2.5 relative z-10">
+              <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">{highRiskSavedCount}</span>
+              <span className="text-xs font-bold text-rose-300 bg-rose-500/20 border border-rose-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">&gt;3 Risks</span>
+            </div>
+            <p className="mt-3 text-xs text-slate-400 font-mono relative z-10">
+              <span className="text-rose-400 font-bold">{highRiskSavedCount}</span> high-risk saved from crashing
+            </p>
+          </div>
+
+          {/* Metric 4 - Fuchsia / Purple Glow */}
           <div className="min-w-[82vw] sm:min-w-0 snap-center group relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_20px_40px_rgba(168,85,247,0.25)]">
             <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-purple-500/15 blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent pointer-events-none" />
@@ -614,6 +671,8 @@ export default function Dashboard() {
             >
               {option === 'Starred' ? (
                 <span className="flex items-center gap-1.5"><Star size={12} fill="currentColor" className="text-amber-400"/> {option}</span>
+              ) : option === 'High Risk' ? (
+                <span className="flex items-center gap-1.5"><ShieldAlert size={12} className="text-rose-400"/> {option}</span>
               ) : option}
             </button>
           ))}
@@ -719,6 +778,7 @@ export default function Dashboard() {
                             onEdit={setEditSnippet} 
                             onDelete={handleDeleteSnippet} 
                             onUpdateMetric={handleMetricUpdate}
+                            onUpdateXRay={handleUpdateXRay}
                           />
                         </div>
                       );
@@ -752,6 +812,7 @@ export default function Dashboard() {
                       onEdit={setEditSnippet} 
                       onDelete={handleDeleteSnippet} 
                       onUpdateMetric={handleMetricUpdate}
+                      onUpdateXRay={handleUpdateXRay}
                     />
                   </motion.div>
                 );

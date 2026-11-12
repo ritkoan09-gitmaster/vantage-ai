@@ -11,7 +11,10 @@ const SnippetSchema = new mongoose.Schema({
   starred: { type: Boolean, default: false },
   copies: { type: Number, default: 0 },
   views: { type: Number, default: 0 },
-  xray: { type: Object, default: null }
+  xray: { type: Object, default: null },
+  conversionCount: { type: Number, default: 0 },
+  highRisk: { type: Boolean, default: false },
+
 }, { timestamps: true });
 
 SnippetSchema.index({ username: 1, createdAt: -1 });

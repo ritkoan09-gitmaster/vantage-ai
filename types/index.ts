@@ -24,6 +24,10 @@ export interface Snippet {
   starred: boolean;
   copies: number;
   views: number;
+  conversionCount?: number;
+  highRisk?: boolean;
+
+
   tags: string[];
   xray?: XRayData;
   createdAt?: string;

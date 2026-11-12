@@ -14,10 +14,13 @@ export async function GET(req: Request) {
 
     await connectToDatabase();
     
-    // Naye snippets pehle dikhenge
-    const snippets = await Snippet.find({ username }).sort({ createdAt: -1 });
+    // Naye snippets pehle dikhenge - .lean() for maximum speed
+    const snippets = await Snippet.find({ username }).sort({ createdAt: -1 }).lean();
 
-    return NextResponse.json({ success: true, snippets });
+    return NextResponse.json(
+      { success: true, snippets },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
   } catch (error) {
     console.error("🔴 GET SNIPPETS ERROR:", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

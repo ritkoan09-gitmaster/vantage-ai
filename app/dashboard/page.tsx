@@ -66,6 +66,21 @@ export default function Dashboard() {
   const [subDates, setSubDates] = useState({ activation: 'N/A', expiry: 'Lifetime' });
   
   const [snippets, setSnippets] = useState<Snippet[]>([]);
+  const [isLoadingSnippets, setIsLoadingSnippets] = useState(true);
+
+  // Helper to keep both React state and localStorage cache in sync for instant 0ms loads
+  const syncSnippets = (updater: (prev: Snippet[]) => Snippet[]) => {
+    setSnippets(prev => {
+      const next = updater(prev);
+      const username = localStorage.getItem('vault_username');
+      if (username) {
+        try {
+          localStorage.setItem(`vault_cached_snippets_${username}`, JSON.stringify(next));
+        } catch (e) {}
+      }
+      return next;
+    });
+  };
   
   const [githubConnected, setGithubConnected] = useState(false);
   const [vscodeConnected, setVscodeConnected] = useState(false);
@@ -232,6 +247,20 @@ export default function Dashboard() {
     const phone = localStorage.getItem('vault_phone') || '';
     setProfile({ username, email, phone });
 
+    // ⚡ Instant Cache Hydration: 0ms load speed, prevents empty-vault flash
+    try {
+      const cached = localStorage.getItem(`vault_cached_snippets_${username}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSnippets(parsed);
+          setIsLoadingSnippets(false);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load local snippet cache", e);
+    }
+
     setNotifications([
       { id: '1', title: 'Cognitive Engine Active', message: 'Gemini-2.5-flash online and ready.', color: 'bg-neon-cyan' },
       { id: '2', title: 'System Security', message: 'End-to-end telemetry encryption active.', color: 'bg-emerald-400' }
@@ -245,13 +274,18 @@ export default function Dashboard() {
         if (data.success && data.snippets) {
           const formattedSnippets = data.snippets.map((s: any) => ({
             ...s,
-            id: s.snippetId,
+            id: s.snippetId || s.id,
             createdAt: s.createdAt || new Date().toISOString()
           }));
           setSnippets(formattedSnippets);
+          try {
+            localStorage.setItem(`vault_cached_snippets_${username}`, JSON.stringify(formattedSnippets));
+          } catch (e) {}
         }
       } catch (err) {
         console.error("Failed to load snippets", err);
+      } finally {
+        setIsLoadingSnippets(false);
       }
     };
     loadSnippets();
@@ -322,7 +356,7 @@ export default function Dashboard() {
   const totalViewsCount = snippets.reduce((acc, curr) => acc + (curr.views || 0), 0);
 
   const handleMetricUpdate = async (id: string, type: 'copies' | 'views') => {
-    setSnippets(prev => prev.map(s => {
+    syncSnippets(prev => prev.map(s => {
       if (s.id === id) {
         return { ...s, [type]: (s[type] || 0) + 1 };
       }
@@ -348,7 +382,7 @@ export default function Dashboard() {
 
   const handleToggleStar = async (id: string) => {
     let snippetToUpdate: Snippet | undefined;
-    setSnippets(prev => prev.map(s => {
+    syncSnippets(prev => prev.map(s => {
       if (s.id === id) {
         snippetToUpdate = { ...s, starred: !s.starred };
         return snippetToUpdate;
@@ -374,8 +408,8 @@ export default function Dashboard() {
       createdAt: snippet.createdAt || new Date().toISOString()
     };
 
-    // Optimistically update UI immediately so user sees new snippet instantly
-    setSnippets(prev => [snippetWithTimestamp, ...prev]);
+    // Optimistically update UI + local storage cache immediately so user sees new snippet instantly
+    syncSnippets(prev => [snippetWithTimestamp, ...prev]);
 
     const newNotif = {
       id: Date.now().toString(),
@@ -400,7 +434,7 @@ export default function Dashboard() {
         const serverSnippet = data.newSnippet || data.snippet;
         const serverSnippetId = serverSnippet?.snippetId;
         if (serverSnippetId && serverSnippetId !== snippet.id) {
-          setSnippets(prev => prev.map(s => s.id === snippet.id ? { ...s, id: serverSnippetId } : s));
+          syncSnippets(prev => prev.map(s => s.id === snippet.id ? { ...s, id: serverSnippetId } : s));
         }
       }
     } catch (error) {
@@ -409,7 +443,7 @@ export default function Dashboard() {
   };
 
   const handleDeleteSnippet = async (id: string) => {
-    setSnippets(prev => prev.filter(s => s.id !== id));
+    syncSnippets(prev => prev.filter(s => s.id !== id));
     if (viewSnippet?.id === id) {
       setViewSnippet(null);
     }
@@ -426,7 +460,7 @@ export default function Dashboard() {
   };
 
   const handleSaveEdit = async (updated: Snippet) => {
-    setSnippets(prev => prev.map(s => s.id === updated.id ? updated : s));
+    syncSnippets(prev => prev.map(s => s.id === updated.id ? updated : s));
     if (activeTier === 'Pro Plan Monthly') setMonthlyEditsLeft(prev => Math.max(0, prev - 1));
     setEditSnippet(null);
     
@@ -587,7 +621,30 @@ export default function Dashboard() {
       </div>
 
       {/* Snippet Grid */}
-      {visibleSnippets.length === 0 ? (
+      {isLoadingSnippets && snippets.length === 0 ? (
+        /* Cyber-Glass Skeleton Cards while loading on first visit (prevents FOES empty state) */
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((n) => (
+            <div 
+              key={n} 
+              className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#161f30]/70 p-6 backdrop-blur-2xl animate-pulse min-h-[280px] flex flex-col justify-between shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-24 rounded-full bg-slate-700/60" />
+                  <div className="h-4 w-12 rounded-full bg-slate-700/40" />
+                </div>
+                <div className="h-6 w-3/4 rounded-lg bg-slate-700/50" />
+                <div className="h-24 w-full rounded-2xl bg-slate-800/80 border border-white/5" />
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                <div className="h-8 w-28 rounded-xl bg-slate-800" />
+                <div className="h-8 w-16 rounded-xl bg-slate-800/80" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : visibleSnippets.length === 0 ? (
         <div className="rounded-2xl border border-slate-800 bg-[#1e293b] p-12 text-center shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-slate-400">
             <Code2 size={24} />
@@ -598,7 +655,7 @@ export default function Dashboard() {
           </p>
           <button 
             onClick={() => setAddOpen(true)} 
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_4px_16px_rgba(99,102,241,0.35)]"
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_4px_16px_rgba(99,102,241,0.35)] cursor-pointer"
           >
             <Plus size={14} /> Add Snippet Now
           </button>

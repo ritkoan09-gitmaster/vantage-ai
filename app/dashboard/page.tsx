@@ -1212,8 +1212,8 @@ export default function Dashboard() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Jarvis Mic */}
-            <div className="hidden sm:block">
+            {/* Jarvis Mic - Visible on Mobile and Desktop */}
+            <div className="flex items-center">
               <JarvisMic onSnippetGenerated={(newAiSnippet) => {
                 handleAddSnippet({
                   id: crypto.randomUUID(),

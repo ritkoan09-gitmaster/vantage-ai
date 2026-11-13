@@ -105,19 +105,20 @@ export function JarvisMic({ onSnippetGenerated }: JarvisMicProps) {
       <button
         onClick={isListening ? stopListening : startListening}
         disabled={isProcessing}
-        className={`flex items-center justify-center p-2.5 rounded-xl border transition-all duration-300 ${
+        className={`flex items-center justify-center p-2 sm:p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
           isListening 
             ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
             : 'bg-purple-500/10 border-purple-500/40 text-purple-300 hover:border-purple-500/70 hover:bg-purple-500/20 shadow-lg'
         }`}
         title={isListening ? "Listening... Speak now" : "Activate Jarvis Mode"}
+        aria-label="Voice command assistant"
       >
         {isProcessing ? (
-          <Loader2 className="h-[18px] w-[18px] animate-spin text-cyan-400" />
+          <Loader2 className="h-4 w-4 sm:h-[18px] sm:w-[18px] animate-spin text-cyan-400" />
         ) : isListening ? (
-          <MicOff className="h-[18px] w-[18px]" />
+          <MicOff className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
         ) : (
-          <Mic className="h-[18px] w-[18px]" />
+          <Mic className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
         )}
       </button>
 
